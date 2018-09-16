@@ -3,45 +3,6 @@ dPayGo - Unofficial Python Library for dPay
 
 dPayGo is an unofficial python library for dPay, which is created new from scratch from `python-bitshares`.
 
-.. image:: https://img.shields.io/pypi/v/dpaygo.svg
-    :target: https://pypi.python.org/pypi/dpaygo/
-    :alt: Latest Version
-
-.. image:: https://img.shields.io/pypi/pyversions/dpaygo.svg
-    :target: https://pypi.python.org/pypi/dpaygo/
-    :alt: Python Versions
-
-
-.. image:: https://anaconda.org/conda-forge/dpaygo/badges/version.svg
-    :target: https://anaconda.org/conda-forge/dpaygo
-
-
-.. image:: https://anaconda.org/conda-forge/dpaygo/badges/downloads.svg
-    :target: https://anaconda.org/conda-forge/dpaygo
-
-
-Current build status
---------------------
-
-.. image:: https://travis-ci.org/dpays/dpaygo.svg?branch=master
-    :target: https://travis-ci.org/dpays/dpaygo
-
-.. image:: https://ci.appveyor.com/api/projects/status/ig8oqp8bt2fmr09a?svg=true
-    :target: https://ci.appveyor.com/project/dpays/dpaygo
-
-.. image:: https://circleci.com/gh/dpays/dpaygo.svg?style=svg
-    :target: https://circleci.com/gh/dpays/dpaygo
-
-.. image:: https://api.codacy.com/project/badge/Grade/e5476faf97df4c658697b8e7a7efebd7
-    :target: https://www.codacy.com/app/dpays/dpaygo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dpays/dpaygo&amp;utm_campaign=Badge_Grade
-
-.. image:: https://pyup.io/repos/github/dpays/dpaygo/shield.svg
-     :target: https://pyup.io/repos/github/dpay/dpaygo/
-     :alt: Updates
-
-.. image:: https://api.codeclimate.com/v1/badges/e7bdb5b4aa7ab160a780/test_coverage
-   :target: https://codeclimate.com/github/dpays/dpaygo/test_coverage
-   :alt: Test Coverage
 
 Support & Documentation
 =======================
