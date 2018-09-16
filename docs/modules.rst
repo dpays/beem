@@ -1,76 +1,76 @@
 Modules
 =======
 
-beem Modules
+dPayGo Modules
 ---------------
 
 .. toctree::
 
-   beem.account
-   beem.aes
-   beem.asciichart
-   beem.amount
-   beem.asset
-   beem.steem
-   beem.nodelist
-   beem.steemconnect
-   beem.block
-   beem.blockchain
-   beem.blockchainobject
-   beem.comment
-   beem.conveyor
-   beem.discussions
-   beem.exceptions
-   beem.imageuploader
-   beem.instance
-   beem.market
-   beem.memo
-   beem.message
-   beem.notify
-   beem.price
-   beem.snapshot
-   beem.storage
-   beem.transactionbuilder
-   beem.utils
-   beem.vote
-   beem.wallet
-   beem.witness
+   dpaygo.account
+   dpaygo.aes
+   dpaygo.asciichart
+   dpaygo.amount
+   dpaygo.asset
+   dpaygo.dpay
+   dpaygo.nodelist
+   dpaygo.dpayid
+   dpaygo.block
+   dpaygo.blockchain
+   dpaygo.blockchainobject
+   dpaygo.comment
+   dpaygo.dsiteapi
+   dpaygo.discussions
+   dpaygo.exceptions
+   dpaygo.imageuploader
+   dpaygo.instance
+   dpaygo.market
+   dpaygo.memo
+   dpaygo.message
+   dpaygo.notify
+   dpaygo.price
+   dpaygo.snapshot
+   dpaygo.storage
+   dpaygo.transactionbuilder
+   dpaygo.utils
+   dpaygo.vote
+   dpaygo.wallet
+   dpaygo.witness
 
-beemapi Modules
+dpaygoapi Modules
 ------------------
 
 .. toctree::
 
-   beemapi.steemnoderpc
-   beemapi.exceptions
-   beemapi.websocket
-   beemapi.node
-   beemapi.graphenenerpc
+   dpaygoapi.dpaynoderpc
+   dpaygoapi.exceptions
+   dpaygoapi.websocket
+   dpaygoapi.node
+   dpaygoapi.graphenenerpc
 
-beembase Modules
+dpaygobase Modules
 -------------------
 
 .. toctree::
 
-   beembase.memo
-   beembase.objects
-   beembase.objecttypes
-   beembase.operationids
-   beembase.operations
-   beembase.signedtransactions
-   beembase.transactions
+   dpaygobase.memo
+   dpaygobase.objects
+   dpaygobase.objecttypes
+   dpaygobase.operationids
+   dpaygobase.operations
+   dpaygobase.signedtransactions
+   dpaygobase.transactions
 
 
-beemgraphenebase Modules
+dpaygographenebase Modules
 ---------------------------
 
 .. toctree::
 
-   beemgraphenebase.account
-   beemgraphenebase.base58
-   beemgraphenebase.bip38
-   beemgraphenebase.ecdsasig
-   beemgraphenebase.objects
-   beemgraphenebase.objecttypes
-   beemgraphenebase.operations
-   beemgraphenebase.signedtransactions
+   dpaygographenebase.account
+   dpaygographenebase.base58
+   dpaygographenebase.bip38
+   dpaygographenebase.ecdsasig
+   dpaygographenebase.objects
+   dpaygographenebase.objecttypes
+   dpaygographenebase.operations
+   dpaygographenebase.signedtransactions

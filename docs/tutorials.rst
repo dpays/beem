@@ -5,7 +5,7 @@ Tutorials
 Bundle Many Operations
 ----------------------
 
-With Steem, you can bundle multiple operations into a single
+With dPay, you can bundle multiple operations into a single
 transactions. This can be used to do a multi-send (one sender, multiple
 receivers), but it also allows to use any other kind of operation. The
 advantage here is that the user can be sure that the operations are
@@ -17,21 +17,21 @@ one comment operation from each sender.
 .. code-block:: python
 
   from pprint import pprint
-  from beem import Steem
-  from beem.account import Account
-  from beem.comment import Comment
-  from beem.instance import set_shared_steem_instance
+  from dpaygo import DPay
+  from dpaygo.account import Account
+  from dpaygo.comment import Comment
+  from dpaygo.instance import set_shared_dpay_instance
 
   # not a real working key
   wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 
-  stm = Steem(
+  stm = DPay(
       bundle=True, # Enable bundle broadcast
       # nobroadcast=True, # Enable this for testing
       keys=[wif],
   )
   # Set stm as shared instance
-  set_shared_steem_instance(stm)
+  set_shared_dpay_instance(stm)
 
   # Account and Comment will use now stm
   account = Account("test")
@@ -39,9 +39,9 @@ one comment operation from each sender.
   # Post
   c = Comment("@gtg/witness-gtg-log")
 
-  account.transfer("test1", 1, "STEEM")
-  account.transfer("test2", 1, "STEEM")
-  account.transfer("test3", 1, "SBD")
+  account.transfer("test1", 1, "BEX")
+  account.transfer("test2", 1, "BEX")
+  account.transfer("test3", 1, "BBD")
   # Upvote post with 25%
   c.upvote(25, voter=account)
 
@@ -56,25 +56,25 @@ When using  `nobroadcast=True` the transaction is not broadcasted but printed.
 .. code-block:: python
 
   from pprint import pprint
-  from beem import Steem
-  from beem.account import Account
-  from beem.instance import set_shared_steem_instance
+  from dpaygo import DPay
+  from dpaygo.account import Account
+  from dpaygo.instance import set_shared_dpay_instance
 
   # Only for testing not a real working key
   wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 
   # set nobroadcast always to True, when testing
-  testnet = Steem(
+  testnet = DPay(
       nobroadcast=True, # Set to false when want to go live
       keys=[wif],
   )
   # Set testnet as shared instance
-  set_shared_steem_instance(testnet)
+  set_shared_dpay_instance(testnet)
 
   # Account will use now testnet
   account = Account("test")
 
-  pprint(account.transfer("test1", 1, "STEEM"))
+  pprint(account.transfer("test1", 1, "BEX"))
 
 When executing the script above, the output will be similar to the following:
 
@@ -84,7 +84,7 @@ When executing the script above, the output will be similar to the following:
     {'expiration': '2018-05-01T16:16:57',
      'extensions': [],
      'operations': [['transfer',
-                     {'amount': '1.000 STEEM',
+                     {'amount': '1.000 BEX',
                       'from': 'test',
                       'memo': '',
                       'to': 'test1'}]],
@@ -102,7 +102,7 @@ with a `clear_cache()` call from any BlockchainObject.
 .. code-block:: python
 
   from pprint import pprint
-  from beem.account import Account
+  from dpaygo.account import Account
 
   account = Account("test")
   pprint(str(account._cache))
@@ -118,18 +118,18 @@ Simple Sell Script
 
 .. code-block:: python
 
-    from beem import Steem
-    from beem.market import Market
-    from beem.price import Price
-    from beem.amount import Amount
+    from dpaygo import DPay
+    from dpaygo.market import Market
+    from dpaygo.price import Price
+    from dpaygo.amount import Amount
 
     # Only for testing not a real working key
     wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 
     #
-    # Instantiate Steem (pick network via API node)
+    # Instantiate DPay (pick network via API node)
     #
-    steem = Steem(
+    dpay = DPay(
         nobroadcast=True,   # <<--- set this to False when you want to fire!
         keys=[wif]          # <<--- use your real keys, when going live!
     )
@@ -139,16 +139,16 @@ Simple Sell Script
     # The first asset in the first argument is the *quote*
     # Sell and buy calls always refer to the *quote*
     #
-    market = Market("SBD:STEEM",
-        steem_instance=steem
+    market = Market("BBD:BEX",
+        dpay_instance=dpay
     )
 
     #
     # Sell an asset for a price with amount (quote)
     #
     print(market.sell(
-        Price(100.0, "STEEM/SBD"),
-        Amount("0.01 SBD")
+        Price(100.0, "BEX/BBD"),
+        Amount("0.01 BBD")
     ))
 
 
@@ -158,10 +158,10 @@ Sell at a timely rate
 .. code-block:: python
 
     import threading
-    from beem import Steem
-    from beem.market import Market
-    from beem.price import Price
-    from beem.amount import Amount
+    from dpaygo import DPay
+    from dpaygo.market import Market
+    from dpaygo.price import Price
+    from dpaygo.amount import Amount
 
     # Only for testing not a real working key
     wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
@@ -170,8 +170,8 @@ Sell at a timely rate
         """ Sell an asset for a price with amount (quote)
         """
         print(market.sell(
-            Price(100.0, "SBD/STEEM"),
-            Amount("0.01 STEEM")
+            Price(100.0, "BBD/BEX"),
+            Amount("0.01 BEX")
         ))
 
         threading.Timer(60, sell).start()
@@ -179,9 +179,9 @@ Sell at a timely rate
 
     if __name__ == "__main__":
         #
-        # Instantiate Steem (pick network via API node)
+        # Instantiate dPay (pick network via API node)
         #
-        steem = Steem(
+        dpay = DPay(
             nobroadcast=True,   # <<--- set this to False when you want to fire!
             keys=[wif]          # <<--- use your real keys, when going live!
         )
@@ -191,8 +191,8 @@ Sell at a timely rate
         # The first asset in the first argument is the *quote*
         # Sell and buy calls always refer to the *quote*
         #
-        market = Market("STEEM:SBD",
-            steem_instance=steem
+        market = Market("BEX:BBD",
+            dpay_instance=dpay
         )
 
         sell()
@@ -207,8 +207,8 @@ the complete queue is sended at once to the node. The result is a list with repl
 
 .. code-block:: python
 
-    from beem import Steem
-    stm = Steem("https://api.steemit.com")
+    from dpaygo import DPay
+    stm = DPay("https://dpayapi.com)
     stm.rpc.get_config(add_to_queue=True)
     stm.rpc.rpc_queue
 
@@ -233,24 +233,24 @@ Lets calculate the curation reward from the last 7 days:
 .. code-block:: python
 
     from datetime import datetime, timedelta
-    from beem.account import Account
-    from beem.amount import Amount
+    from dpaygo.account import Account
+    from dpaygo.amount import Amount
 
     acc = Account("gtg")
     stop = datetime.utcnow() - timedelta(days=7)
     reward_vests = Amount("0 VESTS")
     for reward in acc.history_reverse(stop=stop, only_ops=["curation_reward"]):
                 reward_vests += Amount(reward['reward'])
-    curation_rewards_SP = acc.steem.vests_to_sp(reward_vests.amount)
+    curation_rewards_SP = acc.dpay.vests_to_sp(reward_vests.amount)
     print("Rewards are %.3f SP" % curation_rewards_SP)
 
 Lets display all Posts from an account:
 
 .. code-block:: python
 
-    from beem.account import Account
-    from beem.comment import Comment
-    from beem.exceptions import ContentDoesNotExistsException
+    from dpaygo.account import Account
+    from dpaygo.comment import Comment
+    from dpaygo.exceptions import ContentDoesNotExistsException
     account = Account("holger80")
     c_list = {}
     for c in map(Comment, account.history(only_ops=["comment"])):
@@ -266,21 +266,21 @@ Lets display all Posts from an account:
 
 Transactionbuilder
 ------------------
-Sign transactions with beem without using the wallet and build the transaction by hand.
+Sign transactions with dPayGo without using the wallet and build the transaction by hand.
 Example with one operation with and without the wallet:
 
 .. code-block:: python
 
-    from beem import Steem
-    from beem.transactionbuilder import TransactionBuilder
-    from beembase import operations
-    stm = Steem()
+    from dpaygo import DPay
+    from dpaygo.transactionbuilder import TransactionBuilder
+    from dpaygobase import operations
+    stm = DPay()
     # Uncomment the following when using a wallet:
     # stm.wallet.unlock("secret_password")
-    tx = TransactionBuilder(steem_instance=stm)
+    tx = TransactionBuilder(dpay_instance=stm)
     op = operations.Transfer(**{"from": 'user_a',
                                 "to": 'user_b',
-                                "amount": '1.000 SBD',
+                                "amount": '1.000 BBD',
                                 "memo": 'test 2'}))
     tx.appendOps(op)
     # Comment appendWif out and uncomment appendSigner when using a stored key from the wallet
@@ -293,17 +293,17 @@ Example with signing and broadcasting two operations:
 
 .. code-block:: python
 
-    from beem import Steem
-    from beem.transactionbuilder import TransactionBuilder
-    from beembase import operations
-    stm = Steem()
+    from dpaygo import DPay
+    from dpaygo.transactionbuilder import TransactionBuilder
+    from dpaygobase import operations
+    stm = DPay()
     # Uncomment the following when using a wallet:
     # stm.wallet.unlock("secret_password")
-    tx = TransactionBuilder(steem_instance=stm)
+    tx = TransactionBuilder(dpay_instance=stm)
     ops = []
     op = operations.Transfer(**{"from": 'user_a',
                                 "to": 'user_b',
-                                "amount": '1.000 SBD',
+                                "amount": '1.000 BBD',
                                 "memo": 'test 2'}))
     ops.append(op)
     op = operations.Vote(**{"voter": v,

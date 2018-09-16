@@ -7,7 +7,7 @@ import sys
 from datetime import timedelta
 import time
 import io
-from beem.steem import Steem
+from dpaygo.dpay import DPay
 import logging
 from prettytable import PrettyTable
 log = logging.getLogger(__name__)
@@ -15,10 +15,10 @@ logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == "__main__":
-    stm = Steem(node="https://api.steemit.com")
-    # stm = Steem(node="wss://appbasetest.timcliff.com")
-    # stm = Steem(node="https://api.steemitstage.com")
-    # stm = Steem(node="https://api.steemitdev.com")
+    stm = DPay(node="https://dpayapi.com")
+    # stm = DPay(node="wss://appbasetest.timcliff.com")
+    # stm = DPay(node="https://api.dpays.io")
+    # stm = DPay(node="https://dpayapi.com")
     all_calls = stm.rpc.get_methods(api="jsonrpc")
     t = PrettyTable(["method", "args", "ret"])
     t.align = "l"

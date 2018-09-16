@@ -8,30 +8,30 @@ import time
 import io
 import logging
 
-from beem.blockchain import Blockchain
-from beem.block import Block
-from beem.account import Account
-from beem.amount import Amount
-from beemgraphenebase.account import PasswordKey, PrivateKey, PublicKey
-from beem.steem import Steem
-from beem.utils import parse_time, formatTimedelta
-from beemapi.exceptions import NumRetriesReached
-from beem.nodelist import NodeList
+from dpaygo.blockchain import Blockchain
+from dpaygo.block import Block
+from dpaygo.account import Account
+from dpaygo.amount import Amount
+from dpaygographenebase.account import PasswordKey, PrivateKey, PublicKey
+from dpaygo.dpay import DPay
+from dpaygo.utils import parse_time, formatTimedelta
+from dpaygoapi.exceptions import NumRetriesReached
+from dpaygo.nodelist import NodeList
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == "__main__":
-    stm = Steem(node=["https://testnet.steemitdev.com"],
+    stm = DPay(node=["https://testnet.dpays.io"],
                 custom_chains={"TESTNETHF20":
                                {'chain_assets':
                                 [
-                                    {"asset": "@@000000013", "symbol": "SBD", "precision": 3, "id": 0},
-                                    {"asset": "@@000000021", "symbol": "STEEM", "precision": 3, "id": 1},
+                                    {"asset": "@@000000013", "symbol": "BBD", "precision": 3, "id": 0},
+                                    {"asset": "@@000000021", "symbol": "BET", "precision": 3, "id": 1},
                                     {"asset": "@@000000037", "symbol": "VESTS", "precision": 6, "id": 2}
                                 ],
                                 'chain_id': '46d82ab7d8db682eb1959aed0ada039a6d49afa1602491f93dde9cac3e8e6c32',
                                 'min_version': '0.20.0',
-                                'prefix': 'TST'}})
+                                'prefix': 'DWT'}})
     print(stm.get_blockchain_version())
-    print(stm.get_config()["STEEM_CHAIN_ID"])
+    print(stm.get_config()["DPAY_CHAIN_ID"])

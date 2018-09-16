@@ -1,20 +1,20 @@
 [run]
 branch = True
 source =
-    beem/
-    beembase/
-    beemapi/
-    beemgraphenebase/
-omit = 
+    dpaygo/
+    dpaygobase/
+    dpaygoapi/
+    dpaygographenebase/
+omit =
      */.eggs/*
      */.tox/*
 
 [report]
-omit = 
+omit =
      */.eggs/*
      */.tox/*
 
 [paths]
 source =
-    .tox/*/lib/python*/site-packages/beem
-    .tox/pypy/site-packages/beem
+    .tox/*/lib/python*/site-packages/dpaygo
+    .tox/pypy/site-packages/dpaygo

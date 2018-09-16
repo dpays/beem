@@ -11,21 +11,21 @@ from pprint import pprint
 from binascii import hexlify
 from collections import OrderedDict
 
-from beembase import (
+from dpaygobase import (
     transactions,
     memo,
     operations,
     objects
 )
-from beembase.objects import Operation
-from beembase.signedtransactions import Signed_Transaction
-from beemgraphenebase.account import PrivateKey
-from beemgraphenebase import account
-from beembase.operationids import getOperationNameForId
-from beemgraphenebase.py23 import py23_bytes, bytes_types
-from beem.amount import Amount
-from beem.asset import Asset
-from beem.steem import Steem
+from dpaygobase.objects import Operation
+from dpaygobase.signedtransactions import Signed_Transaction
+from dpaygographenebase.account import PrivateKey
+from dpaygographenebase import account
+from dpaygobase.operationids import getOperationNameForId
+from dpaygographenebase.py23 import py23_bytes, bytes_types
+from dpaygo.amount import Amount
+from dpaygo.asset import Asset
+from dpaygo.dpay import DPay
 
 class Benchmark(object):
     goal_time = 2
@@ -33,15 +33,15 @@ class Benchmark(object):
 
 class Transaction(Benchmark):
     def setup(self):
-        self.prefix = u"STEEM"
-        self.default_prefix = u"STM"
+        self.prefix = u"DWB"
+        self.default_prefix = u"DWB"
         self.wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
         self.ref_block_num = 34294
         self.ref_block_prefix = 3707022213
         self.expiration = "2016-04-06T08:29:27"
-        self.stm = Steem(
+        self.stm = DPay(
             offline=True
-        )        
+        )
 
     def doit(self, printWire=False, ops=None):
         if ops is None:
@@ -51,7 +51,7 @@ class Transaction(Benchmark):
                                 expiration=self.expiration,
                                 operations=ops)
         tx = tx.sign([self.wif], chain=self.prefix)
-        tx.verify([PrivateKey(self.wif, prefix=u"STM").pubkey], self.prefix)
+        tx.verify([PrivateKey(self.wif, prefix=u"DWB").pubkey], self.prefix)
         txWire = hexlify(py23_bytes(tx)).decode("ascii")
 
     def time_emptyOp(self):
@@ -61,7 +61,7 @@ class Transaction(Benchmark):
         self.op = operations.Transfer(**{
             "from": "foo",
             "to": "baar",
-            "amount": Amount("111.110 STEEM", steem_instance=self.stm),
+            "amount": Amount("111.110 BEX", dpay_instance=self.stm),
             "memo": "Fooo",
             "prefix": self.default_prefix
         })
@@ -73,20 +73,20 @@ class Transaction(Benchmark):
                 'creator':
                 'xeroc',
                 'fee':
-                '10.000 STEEM',
+                '10.000 BEX',
                 'json_metadata':
                 '',
                 'memo_key':
-                'STM6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp',
+                'DWB6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp',
                 'new_account_name':
                 'fsafaasf',
                 'owner': {
                     'account_auths': [],
                     'key_auths': [[
-                        'STM5jYVokmZHdEpwo5oCG3ES2Ca4VYz'
+                        'DWB5jYVokmZHdEpwo5oCG3ES2Ca4VYz'
                         'y6tM8pWWkGdgVnwo2mFLFq', 1
                     ], [
-                        'STM6zLNtyFVToBsBZDsgMhgjpwysYVb'
+                        'DWB6zLNtyFVToBsBZDsgMhgjpwysYVb'
                         'sQD6YhP3kRkQhANUB4w7Qp', 1
                     ]],
                     'weight_threshold':
@@ -95,10 +95,10 @@ class Transaction(Benchmark):
                 'active': {
                     'account_auths': [],
                     'key_auths': [[
-                        'STM6pbVDAjRFiw6fkiKYCrkz7PFeL7'
+                        'DWB6pbVDAjRFiw6fkiKYCrkz7PFeL7'
                         'XNAfefrsREwg8MKpJ9VYV9x', 1
                     ], [
-                        'STM6zLNtyFVToBsBZDsgMhgjpwysYV'
+                        'DWB6zLNtyFVToBsBZDsgMhgjpwysYV'
                         'bsQD6YhP3kRkQhANUB4w7Qp', 1
                     ]],
                     'weight_threshold':
@@ -107,13 +107,13 @@ class Transaction(Benchmark):
                 'posting': {
                     'account_auths': [],
                     'key_auths': [[
-                        'STM8CemMDjdUWSV5wKotEimhK6c4d'
+                        'DWB8CemMDjdUWSV5wKotEimhK6c4d'
                         'Y7p2PdzC2qM1HpAP8aLtZfE7', 1
                     ], [
-                        'STM6zLNtyFVToBsBZDsgMhgjpwys'
+                        'DWB6zLNtyFVToBsBZDsgMhgjpwys'
                         'YVbsQD6YhP3kRkQhANUB4w7Qp', 1
                     ], [
-                        'STM6pbVDAjRFiw6fkiKYCrkz7PFeL'
+                        'DWB6pbVDAjRFiw6fkiKYCrkz7PFeL'
                         '7XNAfefrsREwg8MKpJ9VYV9x', 1
                     ]],
                     'weight_threshold':
@@ -128,7 +128,7 @@ class Transaction(Benchmark):
         self.op = operations.Transfer_to_vesting(**{
             "from": "foo",
             "to": "baar",
-            "amount": "111.110 STEEM",
+            "amount": "111.110 BEX",
             "prefix": self.default_prefix
         })
 
@@ -177,7 +177,7 @@ class Transaction(Benchmark):
             **{
                 "from": "testuser",
                 "to": "testuser",
-                "amount": "1.000 STEEM",
+                "amount": "1.000 BEX",
                 "memo": "testmemo",
                 "prefix": self.default_prefix
             })
@@ -190,7 +190,7 @@ class Transaction(Benchmark):
                 "from": "testuser",
                 "request_id": 9001,
                 "to": "testser",
-                "amount": "100.000 SBD",
+                "amount": "100.000 BBD",
                 "memo": "memohere",
                 "prefix": self.default_prefix
             })
@@ -212,8 +212,8 @@ class Transaction(Benchmark):
             **{
                 "owner": "",
                 "orderid": 0,
-                "amount_to_sell": "0.000 STEEM",
-                "min_to_receive": "0.000 STEEM",
+                "amount_to_sell": "0.000 BEX",
+                "min_to_receive": "0.000 BEX",
                 "fill_or_kill": False,
                 "expiration": "2016-12-31T23:59:59",
                 "prefix": self.default_prefix
@@ -231,10 +231,10 @@ class Transaction(Benchmark):
                     1,
                     "account_auths": [["xeroc", 1], ["fabian", 1]],
                     "key_auths": [[
-                        "STM6KChDK2sns9MwugxkoRvPEnyju"
+                        "DWB6KChDK2sns9MwugxkoRvPEnyju"
                         "TxHN5upGsZ1EtanCffqBVVX3", 1
                     ], [
-                        "STM7sw22HqsXbz7D2CmJfmMwt9ri"
+                        "DWB7sw22HqsXbz7D2CmJfmMwt9ri"
                         "mtk518dRzsR1f8Cgw52dQR1pR", 1
                     ]]
                 },
@@ -243,10 +243,10 @@ class Transaction(Benchmark):
                     1,
                     "account_auths": [],
                     "key_auths": [[
-                        "STM7sw22HqsXbz7D2CmJfmMwt9r"
+                        "DWB7sw22HqsXbz7D2CmJfmMwt9r"
                         "imtk518dRzsR1f8Cgw52dQR1pR", 1
                     ], [
-                        "STM6KChDK2sns9MwugxkoRvPEn"
+                        "DWB6KChDK2sns9MwugxkoRvPEn"
                         "yjuTxHN5upGsZ1EtanCffqBVVX3", 1
                     ]]
                 },
@@ -255,15 +255,15 @@ class Transaction(Benchmark):
                     2,
                     "account_auths": [],
                     "key_auths": [[
-                        "STM6KChDK2sns9MwugxkoRvPEnyju"
+                        "DWB6KChDK2sns9MwugxkoRvPEnyju"
                         "TxHN5upGsZ1EtanCffqBVVX3", 1
                     ], [
-                        "STM7sw22HqsXbz7D2CmJfmMwt9ri"
+                        "DWB7sw22HqsXbz7D2CmJfmMwt9ri"
                         "mtk518dRzsR1f8Cgw52dQR1pR", 1
                     ]]
                 },
                 "memo_key":
-                "STM728uLvStTeAkYJsQefks3FX8yfmpFHp8wXw3RY3kwey2JGDooR",
+                "DWB728uLvStTeAkYJsQefks3FX8yfmpFHp8wXw3RY3kwey2JGDooR",
                 "json_metadata":
                 "",
                 "prefix": self.default_prefix
@@ -296,7 +296,7 @@ class Transaction(Benchmark):
         self.op = operations.Convert(**{
             "owner": "xeroc",
             "requestid": 2342343235,
-            "amount": "100.000 SBD",
+            "amount": "100.000 BBD",
             "prefix": self.default_prefix
         })
 
@@ -322,8 +322,8 @@ class Transaction(Benchmark):
             **{
                 "publisher": "xeroc",
                 "exchange_rate": {
-                    "base": "1.000 SBD",
-                    "quote": "4.123 STEEM"
+                    "base": "1.000 BBD",
+                    "quote": "4.123 BEX"
                 },
                 "prefix": self.default_prefix
             })
@@ -348,14 +348,14 @@ class Transaction(Benchmark):
                 "url":
                 "foooobar",
                 "block_signing_key":
-                "STM6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp",
+                "DWB6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp",
                 "props": {
-                    "account_creation_fee": "10.000 STEEM",
+                    "account_creation_fee": "10.000 BEX",
                     "maximum_block_size": 1111111,
-                    "sbd_interest_rate": 1000
+                    "bbd_interest_rate": 1000
                 },
                 "fee":
-                "10.000 STEEM",
+                "10.000 BEX",
                 "prefix": self.default_prefix
             })
 
@@ -400,8 +400,8 @@ class Transaction(Benchmark):
                 "permlink":
                 "piston",
                 "max_accepted_payout":
-                "1000000.000 SBD",
-                "percent_steem_dollars":
+                "1000000.000 BBD",
+                "percent_dpay_dollars":
                 10000,
                 "allow_votes":
                 True,
@@ -418,4 +418,3 @@ class Transaction(Benchmark):
             })
 
         self.doit()
-

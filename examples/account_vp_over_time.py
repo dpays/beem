@@ -1,11 +1,11 @@
 #!/usr/bin/python
 import sys
 import datetime as dt
-from beem.amount import Amount
-from beem.utils import parse_time, formatTimeString, addTzInfo
-from beem.instance import set_shared_steem_instance
-from beem import Steem
-from beem.snapshot import AccountSnapshot
+from dpaygo.amount import Amount
+from dpaygo.utils import parse_time, formatTimeString, addTzInfo
+from dpaygo.instance import set_shared_dpay_instance
+from dpaygo import DPay
+from dpaygo.snapshot import AccountSnapshot
 import matplotlib as mpl
 # mpl.use('Agg')
 # mpl.use('TkAgg')

@@ -14,7 +14,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 beemapi/ beembase/ beem/
+	flake8 dpaygoapi/ dpaygobase/ dpaygo/
 
 test:
 	python3 setup.py test

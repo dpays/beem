@@ -14,21 +14,21 @@ environment:
       MINICONDA: C:\Miniconda36-x64
       COMM_PY: "py36"
 
-      
+
 install:
 - ps: | # set env vars for versioning
     $env:COMM_TAG = $(git describe --tags $(git rev-list --tags --max-count=1))
     $env:COMM_COUNT = $(git rev-list --count HEAD)
     $env:COMM_HASH = $env:APPVEYOR_REPO_COMMIT.Substring(0,8)
-    
+
     if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-        $env:BUILD = "beempy-{0}-{1}-{2}_win64.zip" -f $env:COMM_TAG, $env:COMM_HASH, $env:COMM_PY
-        $env:BUILD2 = "beempy-onefile-{0}-{1}-{2}_win64.zip" -f $env:COMM_TAG, $env:COMM_HASH, $env:COMM_PY
+        $env:BUILD = "dpay-{0}-{1}-{2}_win64.zip" -f $env:COMM_TAG, $env:COMM_HASH, $env:COMM_PY
+        $env:BUILD2 = "dpay-onefile-{0}-{1}-{2}_win64.zip" -f $env:COMM_TAG, $env:COMM_HASH, $env:COMM_PY
         $env:AVVER = "{0}-{1}" -f $env:COMM_TAG.TrimStart("v"), $env:COMM_HASH
     }
     else {
-        $env:BUILD = "beempy-{0}-{1}-{2}-{3}_win64.zip" -f $env:COMM_TAG, $env:COMM_COUNT, $env:COMM_HASH, $env:COMM_PY
-        $env:BUILD2 = "beempy-onefile-{0}-{1}-{2}-{3}_win64.zip" -f $env:COMM_TAG, $env:COMM_COUNT, $env:COMM_HASH, $env:COMM_PY
+        $env:BUILD = "dpay-{0}-{1}-{2}-{3}_win64.zip" -f $env:COMM_TAG, $env:COMM_COUNT, $env:COMM_HASH, $env:COMM_PY
+        $env:BUILD2 = "dpay-onefile-{0}-{1}-{2}-{3}_win64.zip" -f $env:COMM_TAG, $env:COMM_COUNT, $env:COMM_HASH, $env:COMM_PY
         $env:AVVER = "{0}-{1}" -f $env:COMM_TAG.TrimStart("v"), $env:COMM_COUNT
     }
 
@@ -59,45 +59,45 @@ build_script:
 
 test_script:
 # Run the project tests
-- cmd: py.test tests/beembase
-- cmd: py.test tests/beemgraphene
+- cmd: py.test tests/dpaygobase
+- cmd: py.test tests/dpaygographene
 
 after_test:
  # If tests are successful, create binary packages for the project.
-- cmd: pyinstaller beempy-onedir.spec
-- cmd: pyinstaller beempy-onefile.spec
+- cmd: pyinstaller dpay-onedir.spec
+- cmd: pyinstaller dpay-onefile.spec
 
 # package artifacts
-- cmd: copy /Y C:\OpenSSL-Win64\bin\libeay32.dll dist\beempy
-- cmd: copy /Y C:\OpenSSL-Win64\bin\ssleay32.dll dist\beempy
-# - cmd: 7z a -­mx9 beempy.zip %APPVEYOR_BUILD_FOLDER%\dist\beempy
-#- ps: 7z a -m0=LZMA2 -mx9 $env:BUILD .\dist\beempy
-- ps: 7z a $env:BUILD .\dist\beempy
-- ps: 7z a $env:BUILD2 .\dist\beempy.exe
+- cmd: copy /Y C:\OpenSSL-Win64\bin\libeay32.dll dist\dpay
+- cmd: copy /Y C:\OpenSSL-Win64\bin\ssleay32.dll dist\dpay
+# - cmd: 7z a -ï¿½mx9 dpay.zip %APPVEYOR_BUILD_FOLDER%\dist\dpay
+#- ps: 7z a -m0=LZMA2 -mx9 $env:BUILD .\dist\dpay
+- ps: 7z a $env:BUILD .\dist\dpay
+- ps: 7z a $env:BUILD2 .\dist\dpay.exe
 
 - ps: | # generate sha256 hashes
     (get-filehash $env:BUILD -algorithm SHA256).Hash | out-file ("{0}.sha256" -f $env:BUILD) -encoding ascii
     type ("{0}.sha256" -f $env:BUILD)
     (get-filehash $env:BUILD2 -algorithm SHA256).Hash | out-file ("{0}.sha256" -f $env:BUILD2) -encoding ascii
     type ("{0}.sha256" -f $env:BUILD2)
-    
-#(get-filehash beempy.zip -algorithm SHA256).Hash | out-file "beempy.zip.sha256" -encoding ascii 
+
+#(get-filehash dpay.zip -algorithm SHA256).Hash | out-file "dpay.zip.sha256" -encoding ascii
 
 artifacts:
   # Archive the generated packages in the ci.appveyor.com build report.
 - path: $(BUILD)
-  name: beempy
+  name: dpay
 - path: $(BUILD).sha256
-  name: beempy sha256 hash
+  name: dpay sha256 hash
 - path: $(BUILD2)
-  name: beempy onefile
+  name: dpay onefile
 - path: $(BUILD2).sha256
-  name: beempy onefile sha256 hash
-#- path: beempy.zip
-#  name: beempy_zip
-#- path: beempy.zip.sha256
-#  name: beempy_zip sha256 hash
+  name: dpay onefile sha256 hash
+#- path: dpay.zip
+#  name: dpay_zip
+#- path: dpay.zip.sha256
+#  name: dpay_zip sha256 hash
 
-on_finish: 
+on_finish:
 - ps: | # update appveyor build version, done last to prevent webhook breakage
     update-appveyorbuild -version $env:AVVER

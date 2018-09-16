@@ -2,10 +2,10 @@ Installation
 ============
 The minimal working python version is 2.7.x. or 3.4.x
 
-beem can be installed parallel to python-steem.
+dPayGo can be installed parallel to dpay-python.
 
 For Debian and Ubuntu, please ensure that the following packages are installed:
-        
+
 .. code:: bash
 
     sudo apt-get install build-essential libssl-dev python-dev
@@ -33,46 +33,46 @@ Signing and Verify can be fasten (200 %) by installing cryptography:
 .. code:: bash
 
     pip install -U cryptography
-    
-Install beem by pip::
 
-    pip install -U beem
+Install dPayGo by pip::
+
+    pip install -U dpaygo
 
 Sometimes this does not work. Please try::
 
-    pip3 install -U beem
+    pip3 install -U dpaygo
 
 or::
 
-    python -m pip install beem
+    python -m pip install dpaygo
 
 Manual installation
 -------------------
-    
-You can install beem from this repository if you want the latest
+
+You can install dPayGo from this repository if you want the latest
 but possibly non-compiling version::
 
-    git clone https://github.com/holgern/beem.git
-    cd beem
+    git clone https://github.com/dpays/dpaygo.git
+    cd dpaygo
     python setup.py build
-    
+
     python setup.py install --user
 
 Run tests after install::
 
     pytest
-    
-    
-Installing beem with conda-forge
+
+
+Installing dPayGo with conda-forge
 --------------------------------
 
-Installing beem from the conda-forge channel can be achieved by adding conda-forge to your channels with::
+Installing dPayGo from the conda-forge channel can be achieved by adding conda-forge to your channels with::
 
     conda config --add channels conda-forge
-    
-Once the conda-forge channel has been enabled, beem can be installed with::
 
-    conda install beem
+Once the conda-forge channel has been enabled, dPayGo can be installed with::
+
+    conda install dpaygo
 
 Signing and Verify can be fasten (200 %) by installing cryptography::
 

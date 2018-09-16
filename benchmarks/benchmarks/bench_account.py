@@ -4,8 +4,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from builtins import str
-from beemgraphenebase.base58 import Base58
-from beemgraphenebase.account import BrainKey, Address, PublicKey, PrivateKey, PasswordKey
+from dpaygographenebase.base58 import Base58
+from dpaygographenebase.account import BrainKey, Address, PublicKey, PrivateKey, PasswordKey
 
 
 class Benchmark(object):
@@ -51,5 +51,4 @@ class Account(Benchmark):
 
     def time_PasswordKey(self):
         pwd = "Aang7foN3oz1Ungai2qua5toh3map8ladei1eem2ohsh2shuo8aeji9Thoseo7ah"
-        format(PasswordKey("xeroc", pwd, "posting").get_public(), "STM")
-    
+        format(PasswordKey("xeroc", pwd, "posting").get_public(), "DWB")

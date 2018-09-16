@@ -1,8 +1,8 @@
-from beem import Steem
+from dpaygo import DPay
 import numpy as np
-from beem.utils import reputation_to_score
-from beem.amount import Amount
-from beem.constants import STEEM_100_PERCENT
+from dpaygo.utils import reputation_to_score
+from dpaygo.amount import Amount
+from dpaygo.constants import DPAY_100_PERCENT
 import matplotlib as mpl
 # mpl.use('Agg')
 # mpl.use('TkAgg')
@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
-    stm = Steem()
+    stm = DPay()
     price = Amount(stm.get_current_median_history()["base"])
     reps = [0]
     for i in range(26, 91):

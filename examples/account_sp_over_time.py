@@ -1,11 +1,11 @@
 #!/usr/bin/python
 import sys
 import datetime as dt
-from beem.amount import Amount
-from beem.utils import parse_time, formatTimeString, addTzInfo
-from beem.instance import set_shared_steem_instance
-from beem import Steem
-from beem.snapshot import AccountSnapshot
+from dpaygo.amount import Amount
+from dpaygo.utils import parse_time, formatTimeString, addTzInfo
+from dpaygo.instance import set_shared_dpay_instance
+from dpaygo import DPay
+from dpaygo.snapshot import AccountSnapshot
 import matplotlib as mpl
 # mpl.use('Agg')
 # mpl.use('TkAgg')
@@ -32,15 +32,15 @@ if __name__ == "__main__":
 
     plt.figure(figsize=(12, 6))
     opts = {'linestyle': '-', 'marker': '.'}
-    plt.plot_date(timestamps[1:], own_sp[1:], label="Own SP", **opts)
-    plt.plot_date(timestamps[1:], eff_sp[1:], label="Effective SP", **opts)
+    plt.plot_date(timestamps[1:], own_sp[1:], label="Own BP", **opts)
+    plt.plot_date(timestamps[1:], eff_sp[1:], label="Effective BP", **opts)
     plt.grid()
     plt.legend()
-    plt.title("SP over time - @%s" % (account))
+    plt.title("BP over time - @%s" % (account))
     plt.xlabel("Date")
-    plt.ylabel("SteemPower (SP)")
+    plt.ylabel("BEX Power (BP)")
     # plt.show()
     plt.savefig("sp_over_time-%s.png" % (account))
 
-    print("last effective SP: %.1f SP" % (eff_sp[-1]))
-    print("last own SP: %.1f SP" % (own_sp[-1]))
+    print("last effective BP: %.1f BP" % (eff_sp[-1]))
+    print("last own BP: %.1f BP" % (own_sp[-1]))

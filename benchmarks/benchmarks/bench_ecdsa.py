@@ -6,9 +6,9 @@ from __future__ import unicode_literals
 import hashlib
 import ecdsa
 from binascii import hexlify, unhexlify
-from beemgraphenebase.account import PrivateKey, PublicKey, Address
-import beemgraphenebase.ecdsasig as ecda
-from beemgraphenebase.py23 import py23_bytes
+from dpaygographenebase.account import PrivateKey, PublicKey, Address
+import dpaygographenebase.ecdsasig as ecda
+from dpaygographenebase.py23 import py23_bytes
 
 
 class Benchmark(object):

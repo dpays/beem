@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Packaging logic for beem."""
+"""Packaging logic for dpaygo."""
 import codecs
 import io
 import os
@@ -38,7 +38,7 @@ requires = [
 
 def write_version_py(filename):
     """Write version."""
-    cnt = """\"""THIS FILE IS GENERATED FROM beem SETUP.PY.\"""
+    cnt = """\"""THIS FILE IS GENERATED FROM dpaygo SETUP.PY.\"""
 version = '%(version)s'
 """
     with open(filename, 'w') as a:
@@ -57,29 +57,29 @@ def get_long_description():
 if __name__ == '__main__':
 
     # Rewrite the version file everytime
-    write_version_py('beem/version.py')
-    write_version_py('beembase/version.py')
-    write_version_py('beemapi/version.py')
-    write_version_py('beemgraphenebase/version.py')
+    write_version_py('dpaygo/version.py')
+    write_version_py('dpaygobase/version.py')
+    write_version_py('dpaygoapi/version.py')
+    write_version_py('dpaygographenebase/version.py')
 
     setup(
-        name='beem',
+        name='dpaygo',
         version=VERSION,
-        description='Unofficial Python library for STEEM',
+        description='Unofficial Python library for dPay',
         long_description=get_long_description(),
-        download_url='https://github.com/holgern/beem/tarball/' + VERSION,
+        download_url='https://github.com/dpays/dpaygo/tarball/' + VERSION,
         author='Holger Nahrstaedt',
-        author_email='holger@nahrstaedt.de',
-        maintainer='Holger Nahrstaedt',
-        maintainer_email='holger@nahrstaedt.de',
-        url='http://www.github.com/holgern/beem',
-        keywords=['steem', 'library', 'api', 'rpc'],
+        author_email='jared@benchx.io',
+        maintainer='Jared Rice Sr.',
+        maintainer_email='jared@benchx.io',
+        url='http://www.github.com/dpays/dpaygo',
+        keywords=['dpay', 'library', 'api', 'rpc'],
         packages=[
-            "beem",
-            "beemapi",
-            "beembase",
-            "beemgraphenebase",
-            "beemgrapheneapi"
+            "dpaygo",
+            "dpaygoapi",
+            "dpaygobase",
+            "dpaygographenebase",
+            "dpaygographeneapi"
         ],
         classifiers=[
             'License :: OSI Approved :: MIT License',
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         install_requires=requires,
         entry_points={
             'console_scripts': [
-                'beempy=beem.cli:cli',
+                'dpay=dpaygo.cli:cli',
             ],
         },
         setup_requires=['pytest-runner'],

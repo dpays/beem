@@ -1,4 +1,4 @@
-Contributing to beem
+Contributing to dPayGo
 ====================
 
 We welcome your contributions to our project.
@@ -6,9 +6,9 @@ We welcome your contributions to our project.
 Repository
 ----------
 
-The repository of beem is currently located at:
+The repository of dPayGo is currently located at:
 
-    https://github.com/holgern/beem
+    https://github.com/dpays/dpaygo
 
 Flow
 ----

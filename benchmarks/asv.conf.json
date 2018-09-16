@@ -4,14 +4,14 @@
     "version": 1,
 
     // The name of the project being benchmarked
-    "project": "beem",
+    "project": "dpaygo",
 
     // The project's homepage
-    "project_url": "https://github.com/holgern/beem",
+    "project_url": "https://github.com/dpays/dpaygo",
 
     // The URL or local path of the source code repository for the
     // project being benchmarked
-    //"repo": "https://github.com/holgern/beem.git",
+    //"repo": "https://github.com/dpays/dpaygo.git",
     "repo": "..",
 
     // List of branches to benchmark. If not provided, defaults to "master"
@@ -30,10 +30,10 @@
     // determined by looking for tools on the PATH environment
     // variable.
      "environment_type": "conda",
-    
+
 
     // the base URL to show a commit for the project.
-    "show_commit_url": "http://github.com/holgern/beem/commit/",
+    "show_commit_url": "http://github.com/dpays/dpaygo/commit/",
 
     // The Pythons you'd like to test against.  If not provided, defaults
     // to the current version of Python used to run `asv`.

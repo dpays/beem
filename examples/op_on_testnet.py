@@ -8,27 +8,27 @@ import time
 import io
 import logging
 
-from beem.blockchain import Blockchain
-from beem.block import Block
-from beem.account import Account
-from beem.amount import Amount
-from beemgraphenebase.account import PasswordKey, PrivateKey, PublicKey
-from beem.steem import Steem
-from beem.utils import parse_time, formatTimedelta
-from beemapi.exceptions import NumRetriesReached
-from beem.nodelist import NodeList
+from dpaygo.blockchain import Blockchain
+from dpaygo.block import Block
+from dpaygo.account import Account
+from dpaygo.amount import Amount
+from dpaygographenebase.account import PasswordKey, PrivateKey, PublicKey
+from dpaygo.dpay import DPay
+from dpaygo.utils import parse_time, formatTimedelta
+from dpaygoapi.exceptions import NumRetriesReached
+from dpaygo.nodelist import NodeList
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 password = "secretPassword"
-username = "beem"
+username = "dpaygo"
 useWallet = False
 
 if __name__ == "__main__":
     nodelist = NodeList()
-    stm = Steem(node=nodelist.get_nodes(normal=False, appbase=False, testnet=True))
+    stm = DPay(node=nodelist.get_nodes(normal=False, appbase=False, testnet=True))
     prefix = stm.prefix
-    # curl --data "username=username&password=secretPassword" https://testnet.steem.vc/create
+    # curl --data "username=username&password=secretPassword" https://testnet.dpay.vc/create
     stm.wallet.wipe(True)
     if useWallet:
         stm.wallet.create("123")
@@ -51,21 +51,21 @@ if __name__ == "__main__":
         stm.wallet.addPrivateKey(memo_privkey)
         stm.wallet.addPrivateKey(posting_privkey)
     else:
-        stm = Steem(node=nodelist.get_nodes(normal=False, appbase=False, testnet=True),
+        stm = DPay(node=nodelist.get_nodes(normal=False, appbase=False, testnet=True),
                     wif={'active': str(active_privkey),
                          'posting': str(posting_privkey),
                          'memo': str(memo_privkey)})
-    account = Account(username, steem_instance=stm)
-    account.disallow("beem1", permission='posting')
-    account.allow('beem1', weight=1, permission='posting', account=None)
+    account = Account(username, dpay_instance=stm)
+    account.disallow("dpaygo1", permission='posting')
+    account.allow('dpaygo1', weight=1, permission='posting', account=None)
     if useWallet:
         stm.wallet.getAccountFromPrivateKey(str(active_privkey))
 
-    # stm.create_account("beem1", creator=account, password=password1)
+    # stm.create_account("dpaygo1", creator=account, password=password1)
 
-    account1 = Account("beem1", steem_instance=stm)
-    b = Blockchain(steem_instance=stm)
+    account1 = Account("dpaygo1", dpay_instance=stm)
+    b = Blockchain(dpay_instance=stm)
     blocknum = b.get_current_block().identifier
 
-    account.transfer("beem1", 1, "SBD", "test")
-    b1 = Block(blocknum, steem_instance=stm)
+    account.transfer("dpaygo1", 1, "BBD", "test")
+    b1 = Block(blocknum, dpay_instance=stm)

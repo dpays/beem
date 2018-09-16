@@ -3,11 +3,11 @@ import sys
 from datetime import datetime, timedelta
 import time
 import io
-from beem.blockchain import Blockchain
-from beem.comment import Comment
-from beem.account import Account
-from beem.utils import parse_time, construct_authorperm
-from beem import exceptions
+from dpaygo.blockchain import Blockchain
+from dpaygo.comment import Comment
+from dpaygo.account import Account
+from dpaygo.utils import parse_time, construct_authorperm
+from dpaygo import exceptions
 import logging
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -105,7 +105,7 @@ class WatchingTheWatchersBot:
                     racc = None
                     proxy = None
                     related = list()
-                    if a["recovery_account"] != "steem" and a["recovery_account"] != "":
+                    if a["recovery_account"] != "dpay" and a["recovery_account"] != "":
                         related.append(a["recovery_account"])
                     if a["proxy"] != "":
                         related.append(a["proxy"])

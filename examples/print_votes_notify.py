@@ -3,8 +3,8 @@ import sys
 from datetime import timedelta
 import time
 import io
-from beem.notify import Notify
-from beem.utils import parse_time
+from dpaygo.notify import Notify
+from dpaygo.utils import parse_time
 import logging
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

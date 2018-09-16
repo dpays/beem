@@ -6,11 +6,11 @@ import io
 import re
 import gzip
 import json
-from beem.blockchain import Blockchain
-from beem.comment import Comment
-from beem.account import Account
-from beem.utils import parse_time, construct_authorperm
-from beem import exceptions
+from dpaygo.blockchain import Blockchain
+from dpaygo.comment import Comment
+from dpaygo.account import Account
+from dpaygo.utils import parse_time, construct_authorperm
+from dpaygo import exceptions
 import logging
 from binascii import hexlify, unhexlify
 log = logging.getLogger(__name__)

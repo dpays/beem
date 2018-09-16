@@ -3,93 +3,93 @@ import sys
 from datetime import timedelta
 import time
 import io
-from beem import Steem
-from beem.account import Account
-from beem.amount import Amount
-from beem.utils import parse_time
-from steem.account import Account as steemAccount
-from steem.post import Post as steemPost
-from steem import Steem as steemSteem
+from dpaygo import DPay
+from dpaygo.account import Account
+from dpaygo.amount import Amount
+from dpaygo.utils import parse_time
+from dpay.account import Account as dpayAccount
+from dpay.post import Post as dpayPost
+from dpay import DPay as dpayDPay
 import logging
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == "__main__":
-    stm = Steem("https://api.steemit.com")
-    beem_acc = Account("holger80", steem_instance=stm)
-    stm2 = steemSteem(nodes=["https://api.steemit.com"])
-    steem_acc = steemAccount("holger80", steemd_instance=stm2)
+    stm = DPay("https://dpayapi.com")
+    dpaygo_acc = Account("holger80", dpay_instance=stm)
+    stm2 = dpayDPay(nodes=["https://dpayapi.com"])
+    dpay_acc = dpayAccount("holger80", dpayd_instance=stm2)
 
     # profile
-    print("beem_acc.profile  {}".format(beem_acc.profile))
-    print("steem_acc.profile {}".format(steem_acc.profile))
+    print("dpaygo_acc.profile  {}".format(dpaygo_acc.profile))
+    print("dpay_acc.profile {}".format(dpay_acc.profile))
     # sp
-    print("beem_acc.sp  {}".format(beem_acc.sp))
-    print("steem_acc.sp {}".format(steem_acc.sp))
+    print("dpaygo_acc.sp  {}".format(dpaygo_acc.sp))
+    print("dpay_acc.sp {}".format(dpay_acc.sp))
     # rep
-    print("beem_acc.rep  {}".format(beem_acc.rep))
-    print("steem_acc.rep {}".format(steem_acc.rep))
+    print("dpaygo_acc.rep  {}".format(dpaygo_acc.rep))
+    print("dpay_acc.rep {}".format(dpay_acc.rep))
     # balances
-    print("beem_acc.balances  {}".format(beem_acc.balances))
-    print("steem_acc.balances {}".format(steem_acc.balances))
+    print("dpaygo_acc.balances  {}".format(dpaygo_acc.balances))
+    print("dpay_acc.balances {}".format(dpay_acc.balances))
     # get_balances()
-    print("beem_acc.get_balances()  {}".format(beem_acc.get_balances()))
-    print("steem_acc.get_balances() {}".format(steem_acc.get_balances()))
+    print("dpaygo_acc.get_balances()  {}".format(dpaygo_acc.get_balances()))
+    print("dpay_acc.get_balances() {}".format(dpay_acc.get_balances()))
     # reputation()
-    print("beem_acc.get_reputation()  {}".format(beem_acc.get_reputation()))
-    print("steem_acc.reputation() {}".format(steem_acc.reputation()))
+    print("dpaygo_acc.get_reputation()  {}".format(dpaygo_acc.get_reputation()))
+    print("dpay_acc.reputation() {}".format(dpay_acc.reputation()))
     # voting_power()
-    print("beem_acc.get_voting_power()  {}".format(beem_acc.get_voting_power()))
-    print("steem_acc.voting_power() {}".format(steem_acc.voting_power()))
+    print("dpaygo_acc.get_voting_power()  {}".format(dpaygo_acc.get_voting_power()))
+    print("dpay_acc.voting_power() {}".format(dpay_acc.voting_power()))
     # get_followers()
-    print("beem_acc.get_followers()  {}".format(beem_acc.get_followers()))
-    print("steem_acc.get_followers() {}".format(steem_acc.get_followers()))
+    print("dpaygo_acc.get_followers()  {}".format(dpaygo_acc.get_followers()))
+    print("dpay_acc.get_followers() {}".format(dpay_acc.get_followers()))
     # get_following()
-    print("beem_acc.get_following()  {}".format(beem_acc.get_following()))
-    print("steem_acc.get_following() {}".format(steem_acc.get_following()))
+    print("dpaygo_acc.get_following()  {}".format(dpaygo_acc.get_following()))
+    print("dpay_acc.get_following() {}".format(dpay_acc.get_following()))
     # has_voted()
-    print("beem_acc.has_voted()  {}".format(beem_acc.has_voted("@holger80/api-methods-list-for-appbase")))
-    print("steem_acc.has_voted() {}".format(steem_acc.has_voted(steemPost("@holger80/api-methods-list-for-appbase"))))
+    print("dpaygo_acc.has_voted()  {}".format(dpaygo_acc.has_voted("@holger80/api-methods-list-for-appbase")))
+    print("dpay_acc.has_voted() {}".format(dpay_acc.has_voted(dpayPost("@holger80/api-methods-list-for-appbase"))))
     # curation_stats()
-    print("beem_acc.curation_stats()  {}".format(beem_acc.curation_stats()))
-    print("steem_acc.curation_stats() {}".format(steem_acc.curation_stats()))
+    print("dpaygo_acc.curation_stats()  {}".format(dpaygo_acc.curation_stats()))
+    print("dpay_acc.curation_stats() {}".format(dpay_acc.curation_stats()))
     # virtual_op_count
-    print("beem_acc.virtual_op_count()  {}".format(beem_acc.virtual_op_count()))
-    print("steem_acc.virtual_op_count() {}".format(steem_acc.virtual_op_count()))
+    print("dpaygo_acc.virtual_op_count()  {}".format(dpaygo_acc.virtual_op_count()))
+    print("dpay_acc.virtual_op_count() {}".format(dpay_acc.virtual_op_count()))
     # get_account_votes
-    print("beem_acc.get_account_votes()  {}".format(beem_acc.get_account_votes()))
-    print("steem_acc.get_account_votes() {}".format(steem_acc.get_account_votes()))
+    print("dpaygo_acc.get_account_votes()  {}".format(dpaygo_acc.get_account_votes()))
+    print("dpay_acc.get_account_votes() {}".format(dpay_acc.get_account_votes()))
     # get_withdraw_routes
-    print("beem_acc.get_withdraw_routes()  {}".format(beem_acc.get_withdraw_routes()))
-    print("steem_acc.get_withdraw_routes() {}".format(steem_acc.get_withdraw_routes()))
+    print("dpaygo_acc.get_withdraw_routes()  {}".format(dpaygo_acc.get_withdraw_routes()))
+    print("dpay_acc.get_withdraw_routes() {}".format(dpay_acc.get_withdraw_routes()))
     # get_conversion_requests
-    print("beem_acc.get_conversion_requests()  {}".format(beem_acc.get_conversion_requests()))
-    print("steem_acc.get_conversion_requests() {}".format(steem_acc.get_conversion_requests()))
+    print("dpaygo_acc.get_conversion_requests()  {}".format(dpaygo_acc.get_conversion_requests()))
+    print("dpay_acc.get_conversion_requests() {}".format(dpay_acc.get_conversion_requests()))
     # export
     # history
-    beem_hist = []
-    for h in beem_acc.history(only_ops=["transfer"]):
-        beem_hist.append(h)
-        if len(beem_hist) >= 10:
+    dpaygo_hist = []
+    for h in dpaygo_acc.history(only_ops=["transfer"]):
+        dpaygo_hist.append(h)
+        if len(dpaygo_hist) >= 10:
             break
-    steem_hist = []
-    for h in steem_acc.history(filter_by="transfer", start=0):
-        steem_hist.append(h)
-        if len(steem_hist) >= 10:
+    dpay_hist = []
+    for h in dpay_acc.history(filter_by="transfer", start=0):
+        dpay_hist.append(h)
+        if len(dpay_hist) >= 10:
             break
-    print("beem_acc.history()  {}".format(beem_hist))
-    print("steem_acc.history() {}".format(steem_hist))
+    print("dpaygo_acc.history()  {}".format(dpaygo_hist))
+    print("dpay_acc.history() {}".format(dpay_hist))
     # history_reverse
-    beem_hist = []
-    for h in beem_acc.history_reverse(only_ops=["transfer"]):
-        beem_hist.append(h)
-        if len(beem_hist) >= 10:
+    dpaygo_hist = []
+    for h in dpaygo_acc.history_reverse(only_ops=["transfer"]):
+        dpaygo_hist.append(h)
+        if len(dpaygo_hist) >= 10:
             break
-    steem_hist = []
-    for h in steem_acc.history_reverse(filter_by="transfer"):
-        steem_hist.append(h)
-        if len(steem_hist) >= 10:
+    dpay_hist = []
+    for h in dpay_acc.history_reverse(filter_by="transfer"):
+        dpay_hist.append(h)
+        if len(dpay_hist) >= 10:
             break
-    print("beem_acc.history_reverse()  {}".format(beem_hist))
-    print("steem_acc.history_reverse() {}".format(steem_hist))
+    print("dpaygo_acc.history_reverse()  {}".format(dpaygo_hist))
+    print("dpay_acc.history_reverse() {}".format(dpay_hist))

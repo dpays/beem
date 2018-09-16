@@ -4,12 +4,12 @@ import sys
 from datetime import datetime, timedelta
 import time
 import io
-from beem.steem import Steem
-from beem.account import Account
-from beem.amount import Amount
-from beem.blockchain import Blockchain
-from beem.utils import parse_time
-from beem.instance import set_shared_steem_instance
+from dpaygo.dpay import DPay
+from dpaygo.account import Account
+from dpaygo.amount import Amount
+from dpaygo.blockchain import Blockchain
+from dpaygo.utils import parse_time
+from dpaygo.instance import set_shared_dpay_instance
 import logging
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -17,8 +17,8 @@ logging.basicConfig(level=logging.INFO)
 
 @profile
 def profiling(name_list):
-    stm = Steem()
-    set_shared_steem_instance(stm)
+    stm = DPay()
+    set_shared_dpay_instance(stm)
     del stm
     print("start")
     for name in name_list:
@@ -45,7 +45,7 @@ def profiling(name_list):
 
 if __name__ == "__main__":
 
-    account_list = ["utopian-io", "busy.org", "minnowsupport", "qurator", "thesteemengine", "ethandsmith", "make-a-whale", "feedyourminnows", "steembasicincome",
-                    "sbi2", "sbi3", "sbi4", "sbi5", "sbi6", "steemdunk", "thehumanbot", "resteemable", "kobusu", "mariachan", "qustodian", "randowhale",
-                    "bumper", "minnowbooster", "smartsteem", "steemlike", "parosai", "koinbot", "steemfunding"]
+    account_list = ["jared", "dsite", "dsocial", "dpayid", "dpay", "maga", "initminer", "jaredjr", "quin",
+                    "nomoreheroes", "onceuponatime", "michaelx", "cointroller", "cryptokong", "lune", "bossdan", "bigg", "stormkrow", "dvideo", "dweb", "distributedweb",
+                    "mbex", "freedomfirst", "lana", "kusknee", "chiraag", "morrison", "maven"]
     profiling(account_list)
