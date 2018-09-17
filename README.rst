@@ -1,4 +1,4 @@
-dPayGo - Unofficial Python Library for dPay
+dPayGo - Official Python Library for dPay
 ===============================================
 
 dPayGo is an unofficial python library for dPay, which is created new from scratch from `python-bitshares`.
