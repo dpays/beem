@@ -108,7 +108,7 @@ You can see all available commands with ``dpay --help``
 
    Options:
      -n, --node TEXT        URL for public dPay API (e.g.
-                            https://dpayapi.com)
+                            wss://dpayd.dpays.io)
      -o, --offline          Prevent connecting to network
      -d, --no-broadcast     Do not broadcast
      -p, --no-wallet        Do not load the wallet

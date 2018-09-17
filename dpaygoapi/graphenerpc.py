@@ -115,7 +115,7 @@ class GrapheneRPC(object):
             ws = GrapheneRPC("wss://dpayd.dpays.io","","")
             print(ws.get_account_count())
 
-            ws = GrapheneRPC("https://dpayapi.com","","")
+            ws = GrapheneRPC("wss://dpayd.dpays.io","","")
             print(ws.get_account_count())
 
     .. note:: This class allows to call methods available via
@@ -308,7 +308,7 @@ class GrapheneRPC(object):
             if v["chain_id"] == chain_id and self.version_string_to_int(v["min_version"]) <= self.version_string_to_int(network_version):
                 if highest_version_chain is None:
                     highest_version_chain = v
-                elif v["min_version"] == '0.19.5' and self.use_condenser:
+                elif v["min_version"] == '0.19.6' and self.use_condenser:
                     highest_version_chain = v
                 elif v["min_version"] == '0.0.0' and self.use_condenser:
                     highest_version_chain = v

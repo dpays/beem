@@ -18,7 +18,7 @@ dPayGo Modules
    dpaygo.blockchain
    dpaygo.blockchainobject
    dpaygo.comment
-   dpaygo.dsiteapi
+   dpaygo.conveyor
    dpaygo.discussions
    dpaygo.exceptions
    dpaygo.imageuploader

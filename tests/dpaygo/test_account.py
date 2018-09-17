@@ -585,7 +585,7 @@ class Testcases(unittest.TestCase):
         self.assertTrue(replies[0].is_comment())
         self.assertTrue(replies[0].depth > 0)
 
-    def test_get_vote_pct_for_BBD(self):
+    def test_get_vote_pct_for_bbd(self):
         account = self.account
         for vote_pwr in range(5, 100, 5):
-            self.assertTrue(9900 <= account.get_vote_pct_for_BBD(account.get_voting_value_BBD(voting_power=vote_pwr), voting_power=vote_pwr) <= 11000)
+            self.assertTrue(9900 <= account.get_vote_pct_for_bbd(account.get_voting_value_BBD(voting_power=vote_pwr), voting_power=vote_pwr) <= 11000)

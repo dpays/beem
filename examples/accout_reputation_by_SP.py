@@ -17,26 +17,26 @@ if __name__ == "__main__":
         reps.append(int(10**((i - 25) / 9 + 9)))
     # reps = np.logspace(9, 16, 60)
     used_power = stm._calc_resulting_vote()
-    last_sp = 0
-    sp_list = []
+    last_bp = 0
+    bp_list = []
     rep_score_list = []
     for goal_rep in reps:
         score = reputation_to_score(goal_rep)
         rep_score_list.append(score)
         needed_rshares = int(goal_rep) << 6
         needed_vests = needed_rshares / used_power / 100
-        needed_sp = stm.vests_to_sp(needed_vests)
-        sp_list.append(needed_sp / 1000)
-        # print("| %.1f | %.2f | %.2f  | " % (score, needed_sp / 1000, needed_sp / 1000 - last_sp / 1000))
-        last_sp = needed_sp
+        needed_bp = stm.vests_to_bp(needed_vests)
+        bp_list.append(needed_bp / 1000)
+        # print("| %.1f | %.2f | %.2f  | " % (score, needed_bp / 1000, needed_bp / 1000 - last_bp / 1000))
+        last_bp = needed_bp
 
     plt.figure(figsize=(12, 6))
     opts = {'linestyle': '-', 'marker': '.'}
-    plt.semilogx(sp_list, rep_score_list, label="Reputation", **opts)
+    plt.semilogx(bp_list, rep_score_list, label="Reputation", **opts)
     plt.grid()
     plt.legend()
-    plt.title("Required number of 1k SP upvotes to reach certain reputation")
-    plt.xlabel("1k SP votes")
+    plt.title("Required number of 1k BP upvotes to reach certain reputation")
+    plt.xlabel("1k BP votes")
     plt.ylabel("Reputation")
     plt.show()
     # plt.savefig("rep_based_on_votes.png")

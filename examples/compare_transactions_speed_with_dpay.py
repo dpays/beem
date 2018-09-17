@@ -29,9 +29,9 @@ from dpaygo.dpay import DPay
 import time
 
 from dpay import DPay as dpayDPay
-from dpaybase.account import PrivateKey as dpayPrivateKey
-from dpaybase.transactions import SignedTransaction as dpaySignedTransaction
-from dpaybase import operations as dpayOperations
+from dpaygobase.account import PrivateKey as dpayPrivateKey
+from dpaygobase.transactions import SignedTransaction as dpaySignedTransaction
+from dpaygobase import operations as dpayOperations
 from timeit import default_timer as timer
 
 

@@ -259,7 +259,7 @@ class Account(BlockchainObject):
         return self.get_reputation()
 
     @property
-    def sp(self):
+    def bp(self):
         """ Returns the accounts BEX Power
         """
         return self.get_dpay_power()
@@ -312,7 +312,7 @@ class Account(BlockchainObject):
             ret += " VP = %.2f $\n" % (self.get_voting_value_BBD())
             ret += "full in %s \n" % (self.get_recharge_time_str())
             ret += "--- Balance ---\n"
-            ret += "%.2f SP, " % (self.get_dpay_power())
+            ret += "%.2f BP, " % (self.get_dpay_power())
             ret += "%s, %s\n" % (str(self.balances["available"][0]), str(self.balances["available"][1]))
             if bandwidth["allocated"] > 0:
                 ret += "--- Bandwidth ---\n"
@@ -357,7 +357,7 @@ class Account(BlockchainObject):
         vests = (self["vesting_shares"])
         if not onlyOwnSP and "delegated_vesting_shares" in self and "received_vesting_shares" in self:
             vests = vests - (self["delegated_vesting_shares"]) + (self["received_vesting_shares"])
-        return self.dpay.vests_to_sp(vests)
+        return self.dpay.vests_to_bp(vests)
 
     def get_voting_value_BBD(self, voting_weight=100, voting_power=None, dpay_power=None, not_broadcasted_vote=True):
         """ Returns the account voting value in BBD
@@ -365,14 +365,14 @@ class Account(BlockchainObject):
         if voting_power is None:
             voting_power = self.get_voting_power()
         if dpay_power is None:
-            sp = self.get_dpay_power()
+            bp = self.get_dpay_power()
         else:
-            sp = dpay_power
+            bp = dpay_power
 
-        VoteValue = self.dpay.sp_to_bbd(sp, voting_power=voting_power * 100, vote_pct=voting_weight * 100, not_broadcasted_vote=not_broadcasted_vote)
+        VoteValue = self.dpay.bp_to_bbd(bp, voting_power=voting_power * 100, vote_pct=voting_weight * 100, not_broadcasted_vote=not_broadcasted_vote)
         return VoteValue
 
-    def get_vote_pct_for_BBD(self, bbd, voting_power=None, dpay_power=None, not_broadcasted_vote=True):
+    def get_vote_pct_for_bbd(self, bbd, voting_power=None, dpay_power=None, not_broadcasted_vote=True):
         """ Returns the voting percentage needed to have a vote worth a given number of BBD.
 
             If the returned number is bigger than 10000 or smaller than -10000,
@@ -1415,7 +1415,7 @@ class Account(BlockchainObject):
         reward_vests = Amount("0 VESTS", dpay_instance=self.dpay)
         for reward in self.history_reverse(stop=stop, use_block_num=False, only_ops=["curation_reward"]):
             reward_vests += Amount(reward['reward'], dpay_instance=self.dpay)
-        return self.dpay.vests_to_sp(reward_vests.amount)
+        return self.dpay.vests_to_bp(reward_vests.amount)
 
     def curation_stats(self):
         """Returns the curation reward of the last 24h and 7d and the average
@@ -2310,7 +2310,7 @@ class Account(BlockchainObject):
 
     def delegate_vesting_shares(self, to_account, vesting_shares,
                                 account=None, **kwargs):
-        """ Delegate SP to another account.
+        """ Delegate BP to another account.
 
         :param str to_account: Account we are delegating shares to
             (delegatee).
@@ -2830,7 +2830,7 @@ class AccountsObject(list):
         t.align = "r"
         t.add_row([tag_type + " count", str(len(self))])
         own_mvest = []
-        eff_sp = []
+        eff_bp = []
         rep = []
         last_vote_h = []
         last_post_d = []
@@ -2839,7 +2839,7 @@ class AccountsObject(list):
         for f in self:
             rep.append(f.rep)
             own_mvest.append(f.balances["available"][2].amount / 1e6)
-            eff_sp.append(f.get_dpay_power())
+            eff_bp.append(f.get_dpay_power())
             last_vote = addTzInfo(datetime.utcnow()) - (f["last_vote_time"])
             if last_vote.days >= 365:
                 no_vote += 1
@@ -2855,10 +2855,10 @@ class AccountsObject(list):
         if (len(rep) > 0):
             t.add_row(["Mean Rep.", "%.2f" % (sum(rep) / len(rep))])
             t.add_row(["Max Rep.", "%.2f" % (max(rep))])
-        if (len(eff_sp) > 0):
-            t.add_row(["Summed eff. SP", "%.2f" % sum(eff_sp)])
-            t.add_row(["Mean eff. SP", "%.2f" % (sum(eff_sp) / len(eff_sp))])
-            t.add_row(["Max eff. SP", "%.2f" % max(eff_sp)])
+        if (len(eff_bp) > 0):
+            t.add_row(["Summed eff. BP", "%.2f" % sum(eff_bp)])
+            t.add_row(["Mean eff. BP", "%.2f" % (sum(eff_bp) / len(eff_bp))])
+            t.add_row(["Max eff. BP", "%.2f" % max(eff_bp)])
         if (len(last_vote_h) > 0):
             t.add_row(["Mean last vote diff in hours", "%.2f" % (sum(last_vote_h) / len(last_vote_h))])
         if len(last_post_d) > 0:

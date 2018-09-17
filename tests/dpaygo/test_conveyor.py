@@ -4,7 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import unittest
 from dpaygo import DPay
-from dpaygo.dsiteapi import DSiteAPI
+from dpaygo.conveyor import Conveyor
 from dpaygo.instance import set_shared_dpay_instance
 from dpaygo.nodelist import NodeList
 
@@ -21,13 +21,13 @@ class Testcases(unittest.TestCase):
         set_shared_dpay_instance(stm)
 
     def test_healthcheck(self):
-        health = DSiteAPI().healthcheck()
+        health = Conveyor().healthcheck()
         self.assertTrue('version' in health)
         self.assertTrue('ok' in health)
         self.assertTrue('date' in health)
 
     def test_get_user_data(self):
-        c = DSiteAPI()
+        c = Conveyor()
         userdata = c.get_user_data('dpaygo')
         self.assertTrue('jsonrpc' in userdata)
         self.assertTrue('error' in userdata)

@@ -27,38 +27,10 @@ class NodeList(list):
     def __init__(self):
         nodes = [
             {
-                "url": "https://dpayapi.com",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
                 "url": "wss://dpayd.dpays.io",
                 "version": "0.19.6",
-                "type": "normal",
+                "type": "appbase",
                 "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://dpay.indominon.com",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "onceuponatime",
-                "score": 100
-            },
-            {
-                "url": "wss://dpaystan.link",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "stan",
-                "score": 100
-            },
-            {
-                "url": "wss://michaelx.link",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "michaelx",
                 "score": 100
             },
             {
@@ -66,105 +38,7 @@ class NodeList(list):
                 "version": "0.20.0",
                 "type": "appbase",
                 "owner": "dpay",
-                "score": 110
-            },
-            {
-                "url": "wss://nmh.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "nomoreheroes",
                 "score": 100
-            },
-            {
-                "url": "wss://mbex.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "mbex",
-                "score": 1
-            },
-            {
-                "url": "wss://freedomfirst.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "freedomfirst",
-                "score": 150
-            },
-            {
-                "url": "wss://kusknee.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "kusknee",
-                "score": 50
-            },
-            {
-                "url": "wss://jackson.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "nickeles",
-                "score": 165
-            },
-            {
-                "url": "wss://jefferson.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "jared",
-                "score": 165
-            },
-            {
-                "url": "wss://cryptokong.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "cryptokong",
-                "score": 165
-            },
-            {
-                "url": "wss://lune.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "lune",
-                "score": 120
-            },
-            {
-                "url": "wss://tablecafe.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "tablecafe",
-                "score": 75
-            },
-            {
-                "url": "wss://lana.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "lana",
-                "score": 80
-            },
-            {
-                "url": "wss://cointroller.dpays.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "cointroller",
-                "score": 100
-            },
-            {
-                "url": "wss://d.dsite.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "dsite",
-                "score": -10
-            },
-            {
-                "url": "wss://d.dvideo.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "dvideo",
-                "score": 50
-            },
-            {
-                "url": "wss://d.dsocial.io",
-                "version": "0.19.6",
-                "type": "normal",
-                "owner": "dsocial",
-                "score": 20
             }]
         super(NodeList, self).__init__(nodes)
 

@@ -34,7 +34,7 @@ It is also possible to access the configuration with the commandline tool `dpayg
 
 .. code-block:: bash
 
-    dpaygo config
+    dpay config
 
 API node URLs
 -------------
@@ -54,15 +54,15 @@ dpaygo can also be used to set nodes:
 
 .. code-block:: bash
 
-        dpaygo set nodes wss://dpayd.dpays.io
-        dpaygo set nodes "['wss://dpayd.dpays.io', 'wss://testnet.dpays.io:6620']"
+        dpay set nodes wss://dpayd.dpays.io
+        dpay set nodes "['wss://dpayd.dpays.io', 'wss://testnet.dpays.io:6620']"
 
 The default nodes can be resetted to the default value. When the first node does not
 answer, dPay should be set to the offline mode. This can be done by:
 
 .. code-block:: bash
 
-        dpaygo -o set nodes ""
+        dpay -o set nodes ""
 
 or
 
@@ -89,7 +89,7 @@ or by dpaygo with
 
 .. code-block:: bash
 
-        dpaygo set default_account test
+        dpay set default_account test
 
 Default voting weight
 ---------------------
@@ -106,7 +106,7 @@ or by dpaygo with
 
 .. code-block:: bash
 
-        dpaygo set default_vote_weight 100
+        dpay set default_vote_weight 100
 
 
 Setting password_storage
@@ -119,8 +119,8 @@ The password_storage can be set to:
 
 .. code-block:: bash
 
-        dpaygo set password_storage environment
-        dpaygo set password_storage keyring
+        dpay set password_storage environment
+        dpay set password_storage keyring
 
 
 
@@ -142,13 +142,13 @@ It also possible to change the password in the keyring by
 
 .. code-block:: bash
 
-    python -m keyring set dpaygo wallet
+    python -m keyring set dpay wallet
 
 The stored master password can be displayed in the terminal by
 
 .. code-block:: bash
 
-    python -m keyring get dpaygo wallet
+    python -m keyring get dpay wallet
 
 When keyring is set as `password_storage` and the stored password in the keyring
 is identically to the set master password of the wallet, the wallet is automatically
@@ -170,6 +170,6 @@ It can also tested by dpaygo with
 
 .. code-block:: bash
 
-        dpaygo walletinfo --test-unlock
+        dpay walletinfo --test-unlock
 
 When no password prompt is shown, unlocking with keyring or the `UNLOCK` variable works.

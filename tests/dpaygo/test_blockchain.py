@@ -18,7 +18,7 @@ from dpaygo.nodelist import NodeList
 from dpaygobase.signedtransactions import Signed_Transaction
 
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
-nodes_appbase = ["https://api.dpays.io", "https://dpayapi.com", "https://dpaytestapi.com"]
+nodes_appbase = ["https://api.dpays.io", "wss://dpayd.dpays.io", "https://dpaytestapi.com"]
 
 
 class Testcases(unittest.TestCase):

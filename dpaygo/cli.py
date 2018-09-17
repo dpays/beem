@@ -41,7 +41,6 @@ from dpaygobase import operations
 from dpaygographenebase.account import PrivateKey, PublicKey, BrainKey
 from dpaygographenebase.base58 import Base58
 from dpaygo.nodelist import NodeList
-from dpaygo.dsiteapi import DSiteAPI
 
 
 click.disable_unicode_literals_warning = True
@@ -71,7 +70,6 @@ availableConfigurationKeys = [
     "password_storage",
     "client_id",
 ]
-
 
 def prompt_callback(ctx, param, value):
     if value in ["yes", "y", "ye"]:
@@ -141,7 +139,7 @@ def node_answer_time(node):
 
 @click.group(chain=True)
 @click.option(
-    '--node', '-n', default="", help="URL for public DPay API (e.g. https://dpayapi.com)")
+    '--node', '-n', default="", help="URL for public dPay API (e.g. wss://dpayd.dpays.io)")
 @click.option(
     '--offline', '-o', is_flag=True, default=False, help="Prevent connecting to network")
 @click.option(
@@ -153,7 +151,7 @@ def node_answer_time(node):
 @click.option(
     '--create-link', '-l', is_flag=True, default=False, help="Creates dpayid links from all broadcast operations")
 @click.option(
-    '--dpayid', '-s', is_flag=True, default=False, help="Uses a dpayid token to broadcast (only broadcast operation with posting permission)")
+    '--dpayid', '-s', is_flag=True, default=False, help="Uses a dPayID token to broadcast (only broadcast operation with posting permission)")
 @click.option(
     '--expires', '-e', default=30,
     help='Delay in seconds until transactions are supposed to expire(defaults to 60)')
@@ -205,11 +203,8 @@ def cli(node, offline, no_broadcast, no_wallet, unsigned, create_link, dpayid, e
 @click.argument('value')
 def set(key, value):
     """ Set default_account, default_vote_weight or nodes
-
         set [key] [value]
-
         Examples:
-
         Set the default vote weight to 50 %:
         set default_vote_weight 50
     """
@@ -555,7 +550,6 @@ def parsewif(unsafe_import_key):
               help='Private key to import to wallet (unsafe, unless shell history is deleted afterwards)')
 def addkey(unsafe_import_key):
     """ Add key to wallet
-
         When no [OPTION] is given, a password prompt for unlocking the wallet
         and a prompt for entering the private key are shown.
     """
@@ -578,7 +572,6 @@ def addkey(unsafe_import_key):
 @click.argument('pub')
 def delkey(confirm, pub):
     """ Delete key from the wallet
-
         PUB is the public key from the private key
         which will be deleted from the wallet
     """
@@ -607,7 +600,7 @@ def keygen(import_brain_key, sequence):
     t.align = "l"
     t.add_row(["Brain Key", bk.get_brainkey()])
     t.add_row(["Private Key", str(bk.get_private())])
-    t.add_row(["Public Key", format(bk.get_public(), "DWB")])
+    t.add_row(["Public Key", format(bk.get_public(), "STM")])
     print(t)
 
 
@@ -617,7 +610,6 @@ def keygen(import_brain_key, sequence):
               help='Private key to import to wallet (unsafe, unless shell history is deleted afterwards)')
 def addtoken(name, unsafe_import_token):
     """ Add key to wallet
-
         When no [OPTION] is given, a password prompt for unlocking the wallet
         and a prompt for entering the private key are shown.
     """
@@ -640,7 +632,6 @@ def addtoken(name, unsafe_import_token):
 @click.argument('name')
 def deltoken(confirm, name):
     """ Delete name from the wallet
-
         name is the public name from the private token
         which will be deleted from the wallet
     """
@@ -707,7 +698,6 @@ def listaccounts():
 @click.option('--account', '-a', help='Voter account name')
 def upvote(post, vote_weight, account, weight):
     """Upvote a post/comment
-
         POST is @author/permlink
     """
     stm = shared_dpay_instance()
@@ -748,7 +738,6 @@ def upvote(post, vote_weight, account, weight):
 @click.option('--weight', '-w', default=100.0, help='Vote weight (from 0.1 to 100.0)')
 def downvote(post, vote_weight, account, weight):
     """Downvote a post/comment
-
         POST is @author/permlink
     """
     stm = shared_dpay_instance()
@@ -837,7 +826,6 @@ def powerup(amount, account, to):
 @click.option('--account', '-a', help='Powerup from this account')
 def powerdown(amount, account):
     """Power down (start withdrawing VESTS from BEX POWER)
-
         amount is in VESTS
     """
     stm = shared_dpay_instance()
@@ -1126,7 +1114,6 @@ def permissions(account):
               'by signatures to be able to interact')
 def allow(foreign_account, permission, account, weight, threshold):
     """Allow an account/key to interact with your account
-
         foreign_account: The account or key that will be allowed to interact with account.
             When not given, password will be asked, from which a public key is derived.
             This derived key will then interact with your account.
@@ -1146,8 +1133,6 @@ def allow(foreign_account, permission, account, weight, threshold):
         from dpaygographenebase.account import PasswordKey
         pwd = click.prompt("Password for Key Derivation", confirmation_prompt=True, hide_input=True)
         foreign_account = format(PasswordKey(account, pwd, permission).get_public(), stm.prefix)
-    if threshold is not None:
-        threshold = int(threshold)
     tx = acc.allow(foreign_account, weight=weight, permission=permission, threshold=threshold)
     if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
         tx = stm.dpayid.url_from_tx(tx)
@@ -1173,8 +1158,6 @@ def disallow(foreign_account, permission, account, threshold):
     if permission not in ["posting", "active", "owner"]:
         print("Wrong permission, please use: posting, active or owner!")
         return
-    if threshold is not None:
-        threshold = int(threshold)
     acc = Account(account, dpay_instance=stm)
     if not foreign_account:
         from dpaygographenebase.account import PasswordKey
@@ -1653,7 +1636,6 @@ def orderbook(chart, limit, show_date, width, height, ascii):
 @click.option('--orderid', help='Set an orderid')
 def buy(amount, asset, price, account, orderid):
     """Buy BEX or BBD from the internal market
-
         Limit buy price denoted in (BBD per BEX)
     """
     stm = shared_dpay_instance()
@@ -1698,7 +1680,6 @@ def buy(amount, asset, price, account, orderid):
 @click.option('--orderid', help='Set an orderid')
 def sell(amount, asset, price, account, orderid):
     """Sell BEX or BBD from the internal market
-
         Limit sell price denoted in (BBD per BEX)
     """
     stm = shared_dpay_instance()
@@ -1882,13 +1863,13 @@ def witnessupdate(witness, maximum_block_size, account_creation_fee, bbd_interes
         return
     witness = Witness(witness, dpay_instance=stm)
     props = witness["props"]
-    if account_creation_fee is not None:
+    if account_creation_fee:
         props["account_creation_fee"] = str(
-            Amount("%f BEX" % float(account_creation_fee)))
-    if maximum_block_size is not None:
-        props["maximum_block_size"] = int(maximum_block_size)
-    if bbd_interest_rate is not None:
-        props["bbd_interest_rate"] = int(float(bbd_interest_rate) * 100)
+            Amount("%f BEX" % account_creation_fee))
+    if maximum_block_size:
+        props["maximum_block_size"] = maximum_block_size
+    if bbd_interest_rate:
+        props["bbd_interest_rate"] = int(bbd_interest_rate * 100)
     tx = witness.update(signing_key or witness["signing_key"], url or witness["url"], props)
     if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
         tx = stm.dpayid.url_from_tx(tx)
@@ -1912,7 +1893,7 @@ def witnessdisable(witness):
         print("Cannot disable a disabled witness!")
         return
     props = witness["props"]
-    tx = witness.update('DWB1111111111111111111111111111111114T1Anm', witness["url"], props)
+    tx = witness.update('STM1111111111111111111111111111111114T1Anm', witness["url"], props)
     if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
         tx = stm.dpayid.url_from_tx(tx)
     tx = json.dumps(tx, indent=4)
@@ -1973,7 +1954,7 @@ def witnesscreate(witness, pub_signing_key, maximum_block_size, account_creation
 @cli.command()
 @click.argument('witness', nargs=1)
 @click.option('--base', '-b', help='Set base manually, when not set the base is automatically calculated.')
-@click.option('--quote', '-q', help='dPay quote manually, when not set the base is automatically calculated.')
+@click.option('--quote', '-q', help='DPay quote manually, when not set the base is automatically calculated.')
 @click.option('--support-peg', help='Supports peg adjusting the quote, is overwritten by --set-quote!', is_flag=True, default=False)
 def witnessfeed(witness, base, quote, support_peg):
     """Publish price feed for a witness"""
@@ -2163,13 +2144,10 @@ def votes(account, direction, outgoing, incoming, days, export):
 @click.option('--days', '-d', default=7., help="Limit shown rewards by this amount of days (default: 7), max is 7 days.")
 def curation(authorperm, account, limit, min_vote, max_vote, min_performance, max_performance, payout, export, short, length, permlink, title, days):
     """ Lists curation rewards of all votes for authorperm
-
         When authorperm is empty or "all", the curation rewards
         for all account votes are shown.
-
         authorperm can also be a number. e.g. 5 is equivalent to
         the fifth account vote in the given time duration (default is 7 days)
-
     """
     stm = shared_dpay_instance()
     if stm.rpc is not None:
@@ -2227,7 +2205,7 @@ def curation(authorperm, account, limit, min_vote, max_vote, min_performance, ma
         elif payout is not None:
             payout = None
         curation_rewards_BBD = comment.get_curation_rewards(pending_payout_BBD=True, pending_payout_value=payout)
-        curation_rewards_SP = comment.get_curation_rewards(pending_payout_BBD=False, pending_payout_value=payout)
+        curation_rewards_BP = comment.get_curation_rewards(pending_payout_BBD=False, pending_payout_value=payout)
         rows = []
         sum_curation = [0, 0, 0, 0]
         max_curation = [0, 0, 0, 0, 0, 0]
@@ -2235,7 +2213,7 @@ def curation(authorperm, account, limit, min_vote, max_vote, min_performance, ma
         for vote in comment["active_votes"]:
             vote_BBD = stm.rshares_to_bbd(int(vote["rshares"]))
             curation_BBD = curation_rewards_BBD["active_votes"][vote["voter"]]
-            curation_SP = curation_rewards_SP["active_votes"][vote["voter"]]
+            curation_BP = curation_rewards_BP["active_votes"][vote["voter"]]
             if vote_BBD > 0:
                 penalty = ((comment.get_curation_penalty(vote_time=vote["time"])) * vote_BBD)
                 performance = (float(curation_BBD) / vote_BBD * 100)
@@ -2245,13 +2223,13 @@ def curation(authorperm, account, limit, min_vote, max_vote, min_performance, ma
             vote_befor_min = (((vote["time"]) - comment["created"]).total_seconds() / 60)
             sum_curation[0] += vote_BBD
             sum_curation[1] += penalty
-            sum_curation[2] += float(curation_SP)
+            sum_curation[2] += float(curation_BP)
             sum_curation[3] += float(curation_BBD)
             row = [vote["voter"],
                    vote_befor_min,
                    vote_BBD,
                    penalty,
-                   float(curation_SP),
+                   float(curation_BP),
                    performance]
             if row[-1] > max_curation[-1]:
                 max_curation = row
@@ -2303,7 +2281,7 @@ def curation(authorperm, account, limit, min_vote, max_vote, min_performance, ma
                 t.add_row(new_row + voter + ["%.1f min" % row[1],
                                              "%.3f BBD" % float(row[2]),
                                              "%.3f BBD" % float(row[3]),
-                                             "%.3f SP" % (row[4]),
+                                             "%.3f BP" % (row[4]),
                                              "%.1f %%" % (row[5])])
                 if len(authorperm_list) == 1:
                     new_row = new_row2
@@ -2319,19 +2297,19 @@ def curation(authorperm, account, limit, min_vote, max_vote, min_performance, ma
             t.add_row(sum_line + ["%.1f min" % highest_vote[1],
                                   "%.3f BBD" % float(highest_vote[2]),
                                   "%.3f BBD" % float(highest_vote[3]),
-                                  "%.3f SP" % (highest_vote[4]),
+                                  "%.3f BP" % (highest_vote[4]),
                                   "%.1f %%" % (highest_vote[5])])
             sum_line[-1] = "High. Cur."
             t.add_row(sum_line + ["%.1f min" % max_curation[1],
                                   "%.3f BBD" % float(max_curation[2]),
                                   "%.3f BBD" % float(max_curation[3]),
-                                  "%.3f SP" % (max_curation[4]),
+                                  "%.3f BP" % (max_curation[4]),
                                   "%.1f %%" % (max_curation[5])])
             sum_line[-1] = "Sum"
             t.add_row(sum_line + ["-",
                                   "%.3f BBD" % (sum_curation[0]),
                                   "%.3f BBD" % (sum_curation[1]),
-                                  "%.3f SP" % (sum_curation[2]),
+                                  "%.3f BP" % (sum_curation[2]),
                                   "%.2f %%" % curation_sum_percentage])
             if all_posts or export:
                 t.add_row(new_row2 + voter2 + ["-", "-", "-", "-", "-"])
@@ -2381,17 +2359,17 @@ def rewards(accounts, only_sum, post, comment, curation, length, author, permlin
         m = Market(dpay_instance=stm)
         latest = m.ticker()["latest"]
         if author and permlink:
-            t = PrettyTable(["Author", "Permlink", "Payout", "BBD", "SP + BEX", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Author", "Permlink", "Payout", "BBD", "BP + BEX", "Liquid USD", "Invested USD"])
         elif author and title:
-                t = PrettyTable(["Author", "Title", "Payout", "BBD", "SP + BEX", "Liquid USD", "Invested USD"])
+                t = PrettyTable(["Author", "Title", "Payout", "BBD", "BP + BEX", "Liquid USD", "Invested USD"])
         elif author:
-            t = PrettyTable(["Author", "Payout", "BBD", "SP + BEX", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Author", "Payout", "BBD", "BP + BEX", "Liquid USD", "Invested USD"])
         elif not author and permlink:
-            t = PrettyTable(["Permlink", "Payout", "BBD", "SP + BEX", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Permlink", "Payout", "BBD", "BP + BEX", "Liquid USD", "Invested USD"])
         elif not author and title:
-            t = PrettyTable(["Title", "Payout", "BBD", "SP + BEX", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Title", "Payout", "BBD", "BP + BEX", "Liquid USD", "Invested USD"])
         else:
-            t = PrettyTable(["Received", "BBD", "SP + BEX", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Received", "BBD", "BP + BEX", "Liquid USD", "Invested USD"])
         t.align = "l"
         rows = []
         start_op = account.estimate_virtual_op_num(limit_time)
@@ -2419,11 +2397,11 @@ def rewards(accounts, only_sum, post, comment, curation, length, author, permlin
                     payout_BEX = Amount(v["dpay_payout"], dpay_instance=stm)
                     sum_reward[0] += float(payout_BBD)
                     sum_reward[1] += float(payout_BEX)
-                    payout_SP = stm.vests_to_sp(Amount(v["vesting_payout"], dpay_instance=stm))
-                    sum_reward[2] += float(payout_SP)
+                    payout_BP = stm.vests_to_bp(Amount(v["vesting_payout"], dpay_instance=stm))
+                    sum_reward[2] += float(payout_BP)
                     liquid_USD = float(payout_BBD) / float(latest) * float(median_price) + float(payout_BEX) * float(median_price)
                     sum_reward[3] += liquid_USD
-                    invested_USD = float(payout_SP) * float(median_price)
+                    invested_USD = float(payout_BP) * float(median_price)
                     sum_reward[4] += invested_USD
                     if c.is_comment():
                         permlink_row = c.parent_permlink
@@ -2437,15 +2415,15 @@ def rewards(accounts, only_sum, post, comment, curation, length, author, permlin
                                  ((now - formatTimeString(v["timestamp"])).total_seconds() / 60 / 60 / 24),
                                  (payout_BBD),
                                  (payout_BEX),
-                                 (payout_SP),
+                                 (payout_BP),
                                  (liquid_USD),
                                  (invested_USD)])
                 elif v["type"] == "curation_reward":
                     reward = Amount(v["reward"], dpay_instance=stm)
-                    payout_SP = stm.vests_to_sp(reward)
+                    payout_BP = stm.vests_to_bp(reward)
                     liquid_USD = 0
-                    invested_USD = float(payout_SP) * float(median_price)
-                    sum_reward[2] += float(payout_SP)
+                    invested_USD = float(payout_BP) * float(median_price)
+                    sum_reward[2] += float(payout_BP)
                     sum_reward[4] += invested_USD
                     if title:
                         c = Comment(construct_authorperm(v["comment_author"], v["comment_permlink"]), dpay_instance=stm)
@@ -2457,7 +2435,7 @@ def rewards(accounts, only_sum, post, comment, curation, length, author, permlin
                                  ((now - formatTimeString(v["timestamp"])).total_seconds() / 60 / 60 / 24),
                                  0.000,
                                  0.000,
-                                 payout_SP,
+                                 payout_BP,
                                  (liquid_USD),
                                  (invested_USD)])
         sortedList = sorted(rows, key=lambda row: (row[2]), reverse=False)
@@ -2504,14 +2482,14 @@ def rewards(accounts, only_sum, post, comment, curation, length, author, permlin
                        "-",
                        "-",
                        "%.2f BBD" % (sum_reward[0]),
-                       "%.2f SP" % (sum_reward[1] + sum_reward[2]),
+                       "%.2f BP" % (sum_reward[1] + sum_reward[2]),
                        "%.2f $" % (sum_reward[3]),
                        "%.2f $" % (sum_reward[4])])
         elif not author and not (permlink or title):
             t.add_row(["", "", "", "", ""])
             t.add_row(["Sum",
                        "%.2f BBD" % (sum_reward[0]),
-                       "%.2f SP" % (sum_reward[1] + sum_reward[2]),
+                       "%.2f BP" % (sum_reward[1] + sum_reward[2]),
                        "%.2f $" % (sum_reward[2]),
                        "%.2f $" % (sum_reward[3])])
         else:
@@ -2519,7 +2497,7 @@ def rewards(accounts, only_sum, post, comment, curation, length, author, permlin
             t.add_row(["Sum",
                        "-",
                        "%.2f BBD" % (sum_reward[0]),
-                       "%.2f SP" % (sum_reward[1] + sum_reward[2]),
+                       "%.2f BP" % (sum_reward[1] + sum_reward[2]),
                        "%.2f $" % (sum_reward[3]),
                        "%.2f $" % (sum_reward[4])])
         message = "\nShowing "
@@ -2578,17 +2556,17 @@ def pending(accounts, only_sum, post, comment, curation, length, author, permlin
         m = Market(dpay_instance=stm)
         latest = m.ticker()["latest"]
         if author and permlink:
-            t = PrettyTable(["Author", "Permlink", "Cashout", "BBD", "SP", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Author", "Permlink", "Cashout", "BBD", "BP", "Liquid USD", "Invested USD"])
         elif author and title:
-            t = PrettyTable(["Author", "Title", "Cashout", "BBD", "SP", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Author", "Title", "Cashout", "BBD", "BP", "Liquid USD", "Invested USD"])
         elif author:
-            t = PrettyTable(["Author", "Cashout", "BBD", "SP", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Author", "Cashout", "BBD", "BP", "Liquid USD", "Invested USD"])
         elif not author and permlink:
-            t = PrettyTable(["Permlink", "Cashout", "BBD", "SP", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Permlink", "Cashout", "BBD", "BP", "Liquid USD", "Invested USD"])
         elif not author and title:
-            t = PrettyTable(["Title", "Cashout", "BBD", "SP", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Title", "Cashout", "BBD", "BP", "Liquid USD", "Invested USD"])
         else:
-            t = PrettyTable(["Cashout", "BBD", "SP", "Liquid USD", "Invested USD"])
+            t = PrettyTable(["Cashout", "BBD", "BP", "Liquid USD", "Invested USD"])
         t.align = "l"
         rows = []
         c_list = {}
@@ -2618,11 +2596,11 @@ def pending(accounts, only_sum, post, comment, curation, length, author, permlin
                     continue
                 payout_BBD = author_reward["payout_BBD"]
                 sum_reward[0] += float(payout_BBD)
-                payout_SP = author_reward["payout_SP"]
-                sum_reward[1] += float(payout_SP)
+                payout_BP = author_reward["payout_BP"]
+                sum_reward[1] += float(payout_BP)
                 liquid_USD = float(author_reward["payout_BBD"]) / float(latest) * float(median_price)
                 sum_reward[2] += liquid_USD
-                invested_USD = float(author_reward["payout_SP"]) * float(median_price)
+                invested_USD = float(author_reward["payout_BP"]) * float(median_price)
                 sum_reward[3] += invested_USD
                 if v.is_comment():
                     permlink_row = v.permlink
@@ -2635,7 +2613,7 @@ def pending(accounts, only_sum, post, comment, curation, length, author, permlin
                              permlink_row,
                              ((v["created"] - limit_time).total_seconds() / 60 / 60 / 24),
                              (payout_BBD),
-                             (payout_SP),
+                             (payout_BP),
                              (liquid_USD),
                              (invested_USD)])
         if curation:
@@ -2648,10 +2626,10 @@ def pending(accounts, only_sum, post, comment, curation, length, author, permlin
                 days_to_payout = ((c["created"] - limit_time).total_seconds() / 60 / 60 / 24)
                 if days_to_payout < 0:
                     continue
-                payout_SP = rewards["active_votes"][account["name"]]
+                payout_BP = rewards["active_votes"][account["name"]]
                 liquid_USD = 0
-                invested_USD = float(payout_SP) * float(median_price)
-                sum_reward[1] += float(payout_SP)
+                invested_USD = float(payout_BP) * float(median_price)
+                sum_reward[1] += float(payout_BP)
                 sum_reward[3] += invested_USD
                 if title:
                     permlink_row = c.title
@@ -2661,7 +2639,7 @@ def pending(accounts, only_sum, post, comment, curation, length, author, permlin
                              permlink_row,
                              days_to_payout,
                              0.000,
-                             payout_SP,
+                             payout_BP,
                              (liquid_USD),
                              (invested_USD)])
         sortedList = sorted(rows, key=lambda row: (row[2]), reverse=True)
@@ -2708,14 +2686,14 @@ def pending(accounts, only_sum, post, comment, curation, length, author, permlin
                        "-",
                        "-",
                        "%.2f BBD" % (sum_reward[0]),
-                       "%.2f SP" % (sum_reward[1]),
+                       "%.2f BP" % (sum_reward[1]),
                        "%.2f $" % (sum_reward[2]),
                        "%.2f $" % (sum_reward[3])])
         elif not author and not (permlink or title):
             t.add_row(["", "", "", "", ""])
             t.add_row(["Sum",
                        "%.2f BBD" % (sum_reward[0]),
-                       "%.2f SP" % (sum_reward[1]),
+                       "%.2f BP" % (sum_reward[1]),
                        "%.2f $" % (sum_reward[2]),
                        "%.2f $" % (sum_reward[3])])
         else:
@@ -2723,7 +2701,7 @@ def pending(accounts, only_sum, post, comment, curation, length, author, permlin
             t.add_row(["Sum",
                        "-",
                        "%.2f BBD" % (sum_reward[0]),
-                       "%.2f SP" % (sum_reward[1]),
+                       "%.2f BP" % (sum_reward[1]),
                        "%.2f $" % (sum_reward[2]),
                        "%.2f $" % (sum_reward[3])])
         message = "\nShowing pending "
@@ -2756,7 +2734,6 @@ def pending(accounts, only_sum, post, comment, curation, length, author, permlin
 @click.option('--claim_all_vests', help='Claim all VESTS, overwrites reward_vests', is_flag=True)
 def claimreward(account, reward_dpay, reward_bbd, reward_vests, claim_all_dpay, claim_all_bbd, claim_all_vests):
     """Claim reward balances
-
         By default, this will claim ``all`` outstanding balances.
     """
     stm = shared_dpay_instance()
@@ -2858,7 +2835,6 @@ def verify(blocknumber, trx, use_api):
 @click.argument('objects', nargs=-1)
 def info(objects):
     """ Show basic blockchain info
-
         General information about the blockchain, a block, an account,
         a post/comment and a public key
     """
@@ -2876,7 +2852,7 @@ def info(objects):
             median_price["quote"], dpay_instance=stm).amount)
         for key in info:
             t.add_row([key, info[key]])
-        t.add_row(["BEX per mvest", dpay_per_mvest])
+        t.add_row(["dpay per mvest", dpay_per_mvest])
         t.add_row(["internal price", price])
         t.add_row(["account_creation_fee", chain_props["account_creation_fee"]])
         print(t.get_string(sortby="Key"))
@@ -2991,64 +2967,6 @@ def info(objects):
                 print("Post now known" % obj)
         else:
             print("Couldn't identify object to read")
-
-
-@cli.command()
-@click.argument('account', nargs=1, required=False)
-@click.option('--signing-account', '-s', help='Signing account, when empty account is used.')
-def userdata(account, signing_account):
-    """ Get the account's email address and phone number.
-
-        The request has to be signed by the requested account or an admin account.
-    """
-    stm = shared_dpay_instance()
-    if stm.rpc is not None:
-        stm.rpc.rpcconnect()
-    if not unlock_wallet(stm):
-        return
-    if not account:
-        if "default_account" in stm.config:
-            account = stm.config["default_account"]
-    account = Account(account, dpay_instance=stm)
-    if signing_account is not None:
-        signing_account = Account(signing_account, dpay_instance=stm)
-    c = DSiteAPI(dpay_instance=stm)
-    user_data = c.get_user_data(account, signing_account=signing_account)
-    t = PrettyTable(["Key", "Value"])
-    t.align = "l"
-    for key in user_data:
-        # hide internal config data
-        t.add_row([key, user_data[key]])
-    print(t)
-
-
-@cli.command()
-@click.argument('account', nargs=1, required=False)
-@click.option('--signing-account', '-s', help='Signing account, when empty account is used.')
-def featureflags(account, signing_account):
-    """ Get the account's feature flags.
-
-        The request has to be signed by the requested account or an admin account.
-    """
-    stm = shared_dpay_instance()
-    if stm.rpc is not None:
-        stm.rpc.rpcconnect()
-    if not unlock_wallet(stm):
-        return
-    if not account:
-        if "default_account" in stm.config:
-            account = stm.config["default_account"]
-    account = Account(account, dpay_instance=stm)
-    if signing_account is not None:
-        signing_account = Account(signing_account, dpay_instance=stm)
-    c = DSiteAPI(dpay_instance=stm)
-    user_data = c.get_feature_flags(account, signing_account=signing_account)
-    t = PrettyTable(["Key", "Value"])
-    t.align = "l"
-    for key in user_data:
-        # hide internal config data
-        t.add_row([key, user_data[key]])
-    print(t)
 
 
 if __name__ == "__main__":

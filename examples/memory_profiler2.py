@@ -45,7 +45,7 @@ if __name__ == "__main__":
     shared_instance = False
     clear_acc_cache = False
     clear_all_cache = False
-    node = "https://dpayapi.com"
+    node = "wss://dpayd.dpays.io"
     n = 3
     for i in range(1, n + 1):
         print("%d of %d" % (i, n))

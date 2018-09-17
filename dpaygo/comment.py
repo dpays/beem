@@ -364,7 +364,7 @@ class Comment(BlockchainObject):
         elif specific_vote is not None:
             curation_reward = self.get_curation_rewards(pending_payout_BBD=True, pending_payout_value=pending_payout_value)
             specific_vote["curation_reward"] = curation_reward["active_votes"][voter["name"]]
-            specific_vote["ROI"] = float(curation_reward["active_votes"][voter["name"]]) / float(voter.get_voting_value_BBD(voting_weight=specific_vote["percent"] / 100)) * 100
+            specific_vote["ROI"] = float(curation_reward["active_votes"][voter["name"]]) / float(voter.get_voting_value_bbd(voting_weight=specific_vote["percent"] / 100)) * 100
             return specific_vote
         else:
             return None
@@ -408,7 +408,7 @@ class Comment(BlockchainObject):
 
                 {
                     'pending_rewards': True,
-                    'payout_SP': 0.912 BEX,
+                    'payout_BP': 0.912 BEX,
                     'payout_BBD': 3.583 BBD,
                     'total_payout_BBD': 7.166 BBD
                 }
@@ -418,7 +418,7 @@ class Comment(BlockchainObject):
             total_payout = Amount(self["total_payout_value"], dpay_instance=self.dpay)
             curator_payout = Amount(self["curator_payout_value"], dpay_instance=self.dpay)
             author_payout = total_payout - curator_payout
-            return {'pending_rewards': False, "payout_SP": Amount("0 BBD", dpay_instance=self.dpay), "payout_BBD": Amount("0 BBD", dpay_instance=self.dpay), "total_payout_BBD": author_payout}
+            return {'pending_rewards': False, "payout_BP": Amount("0 BBD", dpay_instance=self.dpay), "payout_BBD": Amount("0 BBD", dpay_instance=self.dpay), "total_payout_BBD": author_payout}
 
         median_price = Price(self.dpay.get_current_median_history(), dpay_instance=self.dpay)
         beneficiaries_pct = self.get_beneficiaries_pct()
@@ -433,7 +433,7 @@ class Comment(BlockchainObject):
         bbd_dpay = author_tokens * self["percent_dpay_dollars"] / 20000.
         vesting_dpay = median_price.as_base("BEX") * (author_tokens - bbd_dpay)
 
-        return {'pending_rewards': True, "payout_SP": vesting_dpay, "payout_BBD": bbd_dpay, "total_payout_BBD": author_tokens}
+        return {'pending_rewards': True, "payout_BP": vesting_dpay, "payout_BBD": bbd_dpay, "total_payout_BBD": author_tokens}
 
     def get_curation_rewards(self, pending_payout_BBD=False, pending_payout_value=None):
         """ Returns the curation rewards.

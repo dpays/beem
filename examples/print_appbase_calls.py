@@ -15,10 +15,10 @@ logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == "__main__":
-    stm = DPay(node="https://dpayapi.com")
+    stm = DPay(node="wss://dpayd.dpays.io")
     # stm = DPay(node="wss://appbasetest.timcliff.com")
     # stm = DPay(node="https://api.dpays.io")
-    # stm = DPay(node="https://dpayapi.com")
+    # stm = DPay(node="wss://dpayd.dpays.io")
     all_calls = stm.rpc.get_methods(api="jsonrpc")
     t = PrettyTable(["method", "args", "ret"])
     t.align = "l"

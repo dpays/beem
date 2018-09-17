@@ -113,6 +113,12 @@ before transmitting the packed file. Please check the hash-sum after downloading
 
 Changelog
 =========
+0.01.04
+-------
+* Added dPay Node Running On Appbase (0.20.0) {Moved from Dev network} [d.dpays.io]
+* Fixed "invalid reward fund" bug
+* Cleaned up typos and typos in docs
+
 0.01.03
 -------
 * Updated for the dPay network

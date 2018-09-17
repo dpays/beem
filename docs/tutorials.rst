@@ -208,7 +208,7 @@ the complete queue is sended at once to the node. The result is a list with repl
 .. code-block:: python
 
     from dpaygo import DPay
-    stm = DPay("https://dpayapi.com)
+    stm = DPay("wss://dpayd.dpays.io)
     stm.rpc.get_config(add_to_queue=True)
     stm.rpc.rpc_queue
 
@@ -241,8 +241,8 @@ Lets calculate the curation reward from the last 7 days:
     reward_vests = Amount("0 VESTS")
     for reward in acc.history_reverse(stop=stop, only_ops=["curation_reward"]):
                 reward_vests += Amount(reward['reward'])
-    curation_rewards_SP = acc.dpay.vests_to_sp(reward_vests.amount)
-    print("Rewards are %.3f SP" % curation_rewards_SP)
+    curation_rewards_BP = acc.dpay.vests_to_bp(reward_vests.amount)
+    print("Rewards are %.3f BP" % curation_rewards_BP)
 
 Lets display all Posts from an account:
 

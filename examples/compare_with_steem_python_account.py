@@ -16,10 +16,10 @@ logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == "__main__":
-    stm = DPay("https://dpayapi.com")
-    dpaygo_acc = Account("holger80", dpay_instance=stm)
-    stm2 = dpayDPay(nodes=["https://dpayapi.com"])
-    dpay_acc = dpayAccount("holger80", dpayd_instance=stm2)
+    stm = DPay("wss://dpayd.dpays.io")
+    dpaygo_acc = Account("jared", dpay_instance=stm)
+    stm2 = dpayDPay(nodes=["wss://dpayd.dpays.io"])
+    dpay_acc = dpayAccount("jared", dpayd_instance=stm2)
 
     # profile
     print("dpaygo_acc.profile  {}".format(dpaygo_acc.profile))
@@ -49,8 +49,8 @@ if __name__ == "__main__":
     print("dpaygo_acc.get_following()  {}".format(dpaygo_acc.get_following()))
     print("dpay_acc.get_following() {}".format(dpay_acc.get_following()))
     # has_voted()
-    print("dpaygo_acc.has_voted()  {}".format(dpaygo_acc.has_voted("@holger80/api-methods-list-for-appbase")))
-    print("dpay_acc.has_voted() {}".format(dpay_acc.has_voted(dpayPost("@holger80/api-methods-list-for-appbase"))))
+    print("dpaygo_acc.has_voted()  {}".format(dpaygo_acc.has_voted("@jared/api-methods-list-for-appbase")))
+    print("dpay_acc.has_voted() {}".format(dpay_acc.has_voted(dpayPost("@jared/api-methods-list-for-appbase"))))
     # curation_stats()
     print("dpaygo_acc.curation_stats()  {}".format(dpaygo_acc.curation_stats()))
     print("dpay_acc.curation_stats() {}".format(dpay_acc.curation_stats()))

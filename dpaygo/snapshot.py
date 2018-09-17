@@ -144,12 +144,12 @@ class AccountSnapshot(list):
         bbd = self.own_bbd[index]
         sum_in = sum([din[key].amount for key in din])
         sum_out = sum([dout[key].amount for key in dout])
-        sp_in = self.dpay.vests_to_sp(sum_in, timestamp=ts)
-        sp_out = self.dpay.vests_to_sp(sum_out, timestamp=ts)
-        sp_own = self.dpay.vests_to_sp(own, timestamp=ts)
-        sp_eff = sp_own + sp_in - sp_out
+        bp_in = self.dpay.vests_to_sp(sum_in, timestamp=ts)
+        bp_out = self.dpay.vests_to_sp(sum_out, timestamp=ts)
+        bp_own = self.dpay.vests_to_sp(own, timestamp=ts)
+        bp_eff = bp_own + bp_in - bp_out
         return {"timestamp": ts, "vests": own, "delegated_vests_in": din, "delegated_vests_out": dout,
-                "sp_own": sp_own, "sp_eff": sp_eff, "dpay": dpay, "bbd": bbd, "index": index}
+                "bp_own": bp_own, "bp_eff": bp_eff, "dpay": dpay, "bbd": bbd, "index": index}
 
     def get_account_history(self, start=None, stop=None, use_block_num=True):
         """ Uses account history to fetch all related ops
@@ -270,7 +270,7 @@ class AccountSnapshot(list):
 
         if op['type'] == "account_create":
             fee_dpay = Amount(op['fee'], dpay_instance=self.dpay).amount
-            fee_vests = self.dpay.sp_to_vests(Amount(op['fee'], dpay_instance=self.dpay).amount, timestamp=ts)
+            fee_vests = self.dpay.bp_to_vests(Amount(op['fee'], dpay_instance=self.dpay).amount, timestamp=ts)
             # print(fee_vests)
             if op['new_account_name'] == self.account["name"]:
                 self.update(ts, fee_vests, 0, 0)
@@ -281,7 +281,7 @@ class AccountSnapshot(list):
 
         elif op['type'] == "account_create_with_delegation":
             fee_dpay = Amount(op['fee'], dpay_instance=self.dpay).amount
-            fee_vests = self.dpay.sp_to_vests(Amount(op['fee'], dpay_instance=self.dpay).amount, timestamp=ts)
+            fee_vests = self.dpay.bp_to_vests(Amount(op['fee'], dpay_instance=self.dpay).amount, timestamp=ts)
             if op['new_account_name'] == self.account["name"]:
                 if Amount(op['delegation'], dpay_instance=self.dpay).amount > 0:
                     delegation = {'account': op['creator'], 'amount':
@@ -344,7 +344,7 @@ class AccountSnapshot(list):
 
         elif op['type'] == "transfer_to_vesting":
             dpay = Amount(op['amount'], dpay_instance=self.dpay)
-            vests = self.dpay.sp_to_vests(dpay.amount, timestamp=ts)
+            vests = self.dpay.bp_to_vests(dpay.amount, timestamp=ts)
             if op['from'] == self.account["name"]:
                 self.update(ts, vests, 0, 0, dpay * (-1), 0)
             else:
@@ -441,7 +441,7 @@ class AccountSnapshot(list):
         # else:
         # print(op)
 
-    def build_sp_arrays(self):
+    def build_bp_arrays(self):
         """ Builds the own_sp and eff_sp array"""
         self.own_sp = []
         self.eff_sp = []
@@ -450,12 +450,12 @@ class AccountSnapshot(list):
                                         self.delegated_vests_out):
             sum_in = sum([din[key].amount for key in din])
             sum_out = sum([dout[key].amount for key in dout])
-            sp_in = self.dpay.vests_to_sp(sum_in, timestamp=ts)
-            sp_out = self.dpay.vests_to_sp(sum_out, timestamp=ts)
-            sp_own = self.dpay.vests_to_sp(own, timestamp=ts)
-            sp_eff = sp_own + sp_in - sp_out
-            self.own_sp.append(sp_own)
-            self.eff_sp.append(sp_eff)
+            bp_in = self.dpay.vests_to_sp(sum_in, timestamp=ts)
+            bp_out = self.dpay.vests_to_sp(sum_out, timestamp=ts)
+            bp_own = self.dpay.vests_to_sp(own, timestamp=ts)
+            bp_eff = bp_own + bp_in - bp_out
+            self.own_sp.append(bp_own)
+            self.eff_sp.append(bp_eff)
 
     def build_rep_arrays(self):
         """ Build reputation arrays """
@@ -505,8 +505,8 @@ class AccountSnapshot(list):
             sp = self.dpay.vests_to_sp(vests, timestamp=ts)
             data = self.get_data(timestamp=ts, index=index)
             index = data["index"]
-            if "sp_eff" in data and data["sp_eff"] > 0:
-                curation_1k_sp = sp / data["sp_eff"] * 1000 / sum_days * 7
+            if "bp_eff" in data and data["bp_eff"] > 0:
+                curation_1k_sp = sp / data["bp_eff"] * 1000 / sum_days * 7
             else:
                 curation_1k_sp = 0
             if ts < end_date:

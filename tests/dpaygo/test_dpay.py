@@ -571,21 +571,21 @@ class Testcases(unittest.TestCase):
         self.assertTrue(bts.get_block_interval() is not None)
         self.assertTrue(bts.get_blockchain_version() is not None)
 
-    def test_sp_to_rshares(self):
+    def test_bp_to_rshares(self):
         stm = self.bts
-        rshares = stm.sp_to_rshares(stm.vests_to_sp(1e6))
+        rshares = stm.bp_to_rshares(stm.vests_to_sp(1e6))
         self.assertTrue(abs(rshares - 20000000000.0) < 2)
 
     def test_rshares_to_vests(self):
         stm = self.bts
-        rshares = stm.sp_to_rshares(stm.vests_to_sp(1e6))
+        rshares = stm.bp_to_rshares(stm.vests_to_sp(1e6))
         rshares2 = stm.vests_to_rshares(1e6)
         self.assertTrue(abs(rshares - rshares2) < 2)
 
-    def test_sp_to_bbd'(self):
+    def test_bp_to_bbd'(self):
         stm = self.bts
         sp = 500
-        ret = stm.sp_to_bbd'(sp)
+        ret = stm.bp_to_bbd'(sp)
         self.assertTrue(ret is not None)
 
     def test_bbd'_to_rshares(self):
@@ -603,8 +603,8 @@ class Testcases(unittest.TestCase):
         sp = 1000
         voting_power = 9000
         for vote_pct in range(500, 10000, 500):
-            rshares = stm.sp_to_rshares(sp, voting_power=voting_power, vote_pct=vote_pct)
-            vote_pct_ret = stm.rshares_to_vote_pct(rshares, dpay_power=sp, voting_power=voting_power)
+            rshares = stm.bp_to_rshares(sp, voting_power=voting_power, vote_pct=vote_pct)
+            vote_pct_ret = stm.rshares_to_vote_pct(rshares, dpay_power=bp, voting_power=voting_power)
             self.assertEqual(vote_pct_ret, vote_pct)
 
     def test_sign(self):

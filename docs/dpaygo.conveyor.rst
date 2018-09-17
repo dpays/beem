@@ -1,7 +1,7 @@
-dpaygo\.dsiteapi
+dpaygo\.conveyor
 ==============
 
-.. automodule:: dpaygo.dsiteapi
+.. automodule:: dpaygo.conveyor
     :members:
     :undoc-members:
     :show-inheritance:

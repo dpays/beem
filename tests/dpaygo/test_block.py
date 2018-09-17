@@ -13,7 +13,7 @@ from dpaygo.instance import set_shared_dpay_instance
 from dpaygo.nodelist import NodeList
 
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
-nodes_appbase = ["https://api.dpays.io", "https://dpaytestapi.com", "https://dpayapi.com"]
+nodes_appbase = ["https://api.dpays.io", "https://dpaytestapi.com", "wss://dpayd.dpays.io"]
 
 
 class Testcases(unittest.TestCase):

@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # acc_snapshot.build(only_ops=["producer_reward"])
     # acc_snapshot.build(only_ops=["curation_reward"])
     # acc_snapshot.build(only_ops=["author_reward"])
-    acc_snapshot.build_sp_arrays()
+    acc_snapshot.build_bp_arrays()
     timestamps = acc_snapshot.timestamps
     own_sp = acc_snapshot.own_sp
     eff_sp = acc_snapshot.eff_sp
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     plt.xlabel("Date")
     plt.ylabel("BEX Power (BP)")
     # plt.show()
-    plt.savefig("sp_over_time-%s.png" % (account))
+    plt.savefig("bp_over_time-%s.png" % (account))
 
     print("last effective BP: %.1f BP" % (eff_sp[-1]))
     print("last own BP: %.1f BP" % (own_sp[-1]))

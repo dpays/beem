@@ -519,10 +519,10 @@ class Market(dict):
             :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
                 the head/irreversible block and add the key "orderid" to the tx output
 
-            Prices/Rates are denoted in 'base', i.e. the BBD_BEX market
+            Prices/Rates are denoted in 'base', i.e. the bbd_BEX market
             is priced in BEX per BBD.
 
-            **Example:** in the BBD_BEX market, a price of 300 means
+            **Example:** in the bbd_BEX market, a price of 300 means
             a BBD is worth 300 BEX
 
             .. note::
@@ -616,10 +616,10 @@ class Market(dict):
             :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
                 the head/irreversible block and add the key "orderid" to the tx output
 
-            Prices/Rates are denoted in 'base', i.e. the BBD_BEX market
+            Prices/Rates are denoted in 'base', i.e. the bbd_BEX market
             is priced in BEX per BBD.
 
-            **Example:** in the BBD_BEX market, a price of 300 means
+            **Example:** in the bbd_BEX market, a price of 300 means
             a BBD is worth 300 BEX
 
             .. note::

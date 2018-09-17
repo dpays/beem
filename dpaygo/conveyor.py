@@ -21,15 +21,15 @@ except ImportError:
     from urlparse import urljoin
 
 
-class DSiteAPI(object):
-    """ Class to access dSite DSiteAPI instances:
-        https://github.com/dsites/dsiteapi
+class Conveyor(object):
+    """ Class to access dSite Conveyor instances:
+        https://github.com/dsites/dsite-api
 
         Description from the official documentation:
 
         * Feature flags: "Feature flags allows our apps (condenser mainly) to
           hide certain features behind flags."
-        * User data: "DSiteAPI is the central point for storing sensitive user
+        * User data: "Conveyor is the central point for storing sensitive user
           data (email, phone, etc). No other services should store this data
           and should instead query for it here every time."
         * User tags: "Tagging mechanism for other services, allows defining and
@@ -48,7 +48,7 @@ class DSiteAPI(object):
 
     def __init__(self, url="https://api.dsite.io",
                  dpay_instance=None):
-        """ Initialize a DSiteAPI instance
+        """ Initialize a Conveyor instance
             :param str url: (optional) URL to the dSite API, defaults to
                 https://api.dsite.io
             :param dpaygo.dpay.DPay dpay_instance: DPay instance
@@ -70,7 +70,7 @@ class DSiteAPI(object):
 
             :param str timestamp: valid iso8601 datetime ending in "Z"
             :param str account: valid dPay blockchain account name
-            :param str method: DSiteAPI method name to be called
+            :param str method: Conveyor method name to be called
             :param bytes param: base64 encoded request parameters
             :param bytes nonce: random 8 bytes
 
@@ -80,7 +80,7 @@ class DSiteAPI(object):
         return self.K + first.digest() + nonce
 
     def _request(self, account, method, params, key):
-        """Assemble the request, hash it, sign it and send it to the DSiteAPI
+        """Assemble the request, hash it, sign it and send it to the Conveyor
             instance. Returns the server response as JSON.
 
             :param str account: account name
@@ -119,12 +119,12 @@ class DSiteAPI(object):
         self.id += 1
         return r.json()
 
-    def _dsiteapi_method(self, account, signing_account, method, params):
+    def _conveyor_method(self, account, signing_account, method, params):
         """ Wrapper function to handle account and key lookups
 
             :param str account: name of the addressed account
             :param str signing_account: name of the account to sign the request
-            :param method: DSiteAPI method name to be called
+            :param method: Conveyor method name to be called
             :params dict params: request parameters as `dict`
 
         """
@@ -156,15 +156,15 @@ class DSiteAPI(object):
             .. code-block:: python
 
                 from dpaygo import DPay
-                from dpaygo.dsiteapi import DSiteAPI
+                from dpaygo.conveyor import Conveyor
                 s = DPay(keys=["5JPOSTINGKEY"])
-                c = DSiteAPI(dpay_instance=s)
+                c = Conveyor(dpay_instance=s)
                 print(c.get_user_data('accountname'))
 
         """
         account = Account(account, dpay_instance=self.dpay)
-        user_data = self._dsiteapi_method(account, signing_account,
-                                          "dsiteapi.get_user_data",
+        user_data = self._conveyor_method(account, signing_account,
+                                          "conveyor.get_user_data",
                                           [account['name']])
         if "result" in user_data:
             return user_data["result"]
@@ -185,15 +185,15 @@ class DSiteAPI(object):
             .. code-block:: python
 
                 from dpaygo import DPay
-                from dpaygo.dsiteapi import DSiteAPI
+                from dpaygo.conveyor import Conveyor
                 s = DPay(keys=["5JADMINPOSTINGKEY"])
-                c = DSiteAPI(dpay_instance=s)
+                c = Conveyor(dpay_instance=s)
                 userdata = {'email': 'foo@bar.com', 'phone':'+123456789'}
                 c.set_user_data('accountname', userdata, 'adminaccountname')
 
         """
-        return self._dsiteapi_method(account, signing_account,
-                                     "dsiteapi.set_user_data",
+        return self._conveyor_method(account, signing_account,
+                                     "conveyor.set_user_data",
                                      [params])
 
     def get_feature_flags(self, account, signing_account=None):
@@ -209,15 +209,15 @@ class DSiteAPI(object):
             .. code-block:: python
 
                 from dpaygo import DPay
-                from dpaygo.dsiteapi import DSiteAPI
+                from dpaygo.conveyor import Conveyor
                 s = DPay(keys=["5JPOSTINGKEY"])
-                c = DSiteAPI(dpay_instance=s)
+                c = Conveyor(dpay_instance=s)
                 print(c.get_feature_flags('accountname'))
 
         """
         account = Account(account, dpay_instance=self.dpay)
-        feature_flags = self._dsiteapi_method(account, signing_account,
-                                              "dsiteapi.get_feature_flags",
+        feature_flags = self._conveyor_method(account, signing_account,
+                                              "conveyor.get_feature_flags",
                                               [account['name']])
         if "result" in feature_flags:
             return feature_flags["result"]
@@ -238,19 +238,19 @@ class DSiteAPI(object):
             .. code-block:: python
 
                 from dpaygo import DPay
-                from dpaygo.dsiteapi import DSiteAPI
+                from dpaygo.conveyor import Conveyor
                 s = DPay(keys=["5JPOSTINGKEY"])
-                c = DSiteAPI(dpay_instance=s)
+                c = Conveyor(dpay_instance=s)
                 print(c.get_feature_flag('accountname', 'accepted_tos'))
 
         """
         account = Account(account, dpay_instance=self.dpay)
-        return self._dsiteapi_method(account, signing_account,
-                                     "dsiteapi.get_feature_flag",
+        return self._conveyor_method(account, signing_account,
+                                     "conveyor.get_feature_flag",
                                      [account['name'], flag])
 
     def save_draft(self, account, title, body):
-        """ Save a draft in the DSiteAPI database
+        """ Save a draft in the Conveyor database
 
             :param str account: requested account
             :param str title: draft post title
@@ -259,8 +259,8 @@ class DSiteAPI(object):
         """
         account = Account(account, dpay_instance=self.dpay)
         draft = {'title': title, 'body': body}
-        return self._dsiteapi_method(account, None,
-                                     "dsiteapi.save_draft",
+        return self._conveyor_method(account, None,
+                                     "conveyor.save_draft",
                                      [account['name'], draft])
 
     def list_drafts(self, account):
@@ -281,12 +281,12 @@ class DSiteAPI(object):
 
         """
         account = Account(account, dpay_instance=self.dpay)
-        return self._dsiteapi_method(account, None,
-                                     "dsiteapi.list_drafts",
+        return self._conveyor_method(account, None,
+                                     "conveyor.list_drafts",
                                      [account['name']])
 
     def remove_draft(self, account, uuid):
-        """ Remove a draft from the DSiteAPI database
+        """ Remove a draft from the Conveyor database
 
             :param str account: requested account
             :param str uuid: draft identifier as returned from
@@ -294,12 +294,12 @@ class DSiteAPI(object):
 
         """
         account = Account(account, dpay_instance=self.dpay)
-        return self._dsiteapi_method(account, None,
-                                     "dsiteapi.remove_draft",
+        return self._conveyor_method(account, None,
+                                     "conveyor.remove_draft",
                                      [account['name'], uuid])
 
     def healthcheck(self):
-        """ Get the DSiteAPI status
+        """ Get the Conveyor status
 
             Sample output:
 
