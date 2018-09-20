@@ -113,6 +113,14 @@ before transmitting the packed file. Please check the hash-sum after downloading
 
 Changelog
 =========
+0.01.06
+-------
+* Added all new seed nodes for dPay's live network
+
+0.01.05
+-------
+* Removed old nodes
+
 0.01.04
 -------
 * Added dPay Node Running On Appbase (0.20.0) {Moved from Dev network} [d.dpays.io]
@@ -130,7 +138,6 @@ This library is licensed under the MIT License.
 Acknowledgements
 ================
 `python-bitshares`_ and `python-graphenelib`_ were created by Fabian Schuh (xeroc).
-
 
 .. _python-graphenelib: https://github.com/xeroc/python-graphenelib
 .. _python-bitshares: https://github.com/xeroc/python-bitshares
