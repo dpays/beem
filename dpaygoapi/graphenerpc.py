@@ -25,7 +25,7 @@ from .rpcutils import (
     get_api_name, get_query
 )
 from .node import Nodes
-from dpaygographenebase.version import version as dpaygo_version
+from dpaygographenebase.version import version as beem_version
 from dpaygographenebase.chains import known_chains
 if sys.version_info[0] < 3:
     from thread import interrupt_main
@@ -87,9 +87,7 @@ def create_ws_instance(use_ssl=True, enable_multithread=True):
 class GrapheneRPC(object):
     """
     This class allows to call API methods synchronously, without callbacks.
-
     It logs warnings and errors.
-
     :param str urls: Either a single Websocket/Http URL, or a list of URLs
     :param str user: Username for Authentication
     :param str password: Password for Authentication
@@ -100,28 +98,20 @@ class GrapheneRPC(object):
     :param bool use_condenser: Use the old condenser_api rpc protocol on nodes with version
         0.19.4 or higher. The settings has no effect on nodes with version of 0.19.3 or lower.
     :param dict custom_chains: custom chain which should be added to the known chains
-
     Available APIs:
-
           * database
           * network_node
           * network_broadcast
-
     Usage:
-
         .. code-block:: python
-
             from dpaygoapi.graphenerpc import GrapheneRPC
-            ws = GrapheneRPC("wss://dpayd.dpays.io","","")
+            ws = GrapheneRPC("wss://greatchain.dpaynodes.com","","")
             print(ws.get_account_count())
-
-            ws = GrapheneRPC("wss://dpayd.dpays.io","","")
+            ws = GrapheneRPC("https://api.dpays.io","","")
             print(ws.get_account_count())
-
     .. note:: This class allows to call methods available via
               websocket. If you want to use the notification
               subsystem, please use ``GrapheneWebsocket`` instead.
-
     """
 
     def __init__(self, urls, user=None, password=None, **kwargs):
@@ -213,7 +203,7 @@ class GrapheneRPC(object):
                     self.ws = None
                     self.session = shared_session_instance()
                     self.current_rpc = self.rpc_methods["jsonrpc"]
-                    self.headers = {'User-Agent': 'dpaygo v%s' % (dpaygo_version),
+                    self.headers = {'User-Agent': 'beem v%s' % (beem_version),
                                     'content-type': 'application/json'}
             try:
                 if self.ws:
@@ -269,11 +259,17 @@ class GrapheneRPC(object):
         self.ws.close()
 
     def request_send(self, payload):
-        response = self.session.post(self.url,
-                                     data=payload,
-                                     headers=self.headers,
-                                     timeout=self.timeout,
-                                     auth=(self.user, self.password))
+        if self.user is not None and self.password is not None:
+            response = self.session.post(self.url,
+                                         data=payload,
+                                         headers=self.headers,
+                                         timeout=self.timeout,
+                                         auth=(self.user, self.password))
+        else:
+            response = self.session.post(self.url,
+                                         data=payload,
+                                         headers=self.headers,
+                                         timeout=self.timeout)
         if response.status_code == 401:
             raise UnauthorizedError
         return response.text
@@ -298,9 +294,9 @@ class GrapheneRPC(object):
         if "DPAY_CHAIN_ID" in props:
             chain_id = props["DPAY_CHAIN_ID"]
             network_version = props['DPAY_BLOCKCHAIN_VERSION']
-        elif "DPAY_CHAIN_ID" in props:
-            chain_id = props["DPAY_CHAIN_ID"]
-            network_version = props['DPAY_BLOCKCHAIN_VERSION']
+        elif "DPAYCHAIN_ID" in props:
+            chain_id = props["DPAYCHAIN_ID"]
+            network_version = props['DPAYBLOCKCHAIN_VERSION']
         else:
             raise("Connecting to unknown network!")
         highest_version_chain = None
@@ -308,7 +304,7 @@ class GrapheneRPC(object):
             if v["chain_id"] == chain_id and self.version_string_to_int(v["min_version"]) <= self.version_string_to_int(network_version):
                 if highest_version_chain is None:
                     highest_version_chain = v
-                elif v["min_version"] == '0.19.6' and self.use_condenser:
+                elif v["min_version"] == '0.19.5' and self.use_condenser:
                     highest_version_chain = v
                 elif v["min_version"] == '0.0.0' and self.use_condenser:
                     highest_version_chain = v
@@ -351,7 +347,6 @@ class GrapheneRPC(object):
     def rpcexec(self, payload):
         """
         Execute a call by sending the payload.
-
         :param json payload: Payload data
         :raises ValueError: if the server does not respond in proper JSON format
         :raises RPCError: if the server returns an error
