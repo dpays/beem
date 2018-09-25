@@ -1,4 +1,4 @@
-﻿# This Python file uses the following encoding: utf-8
+# This Python file uses the following encoding: utf-8
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -21,13 +21,12 @@ from dpaygo.amount import Amount
 from dpaygobase import operations
 from dpaygographenebase.account import PrivateKey, PublicKey
 from dpaygographenebase.py23 import bytes_types, integer_types, string_types, text_type
-from dpaygo.constants import DPAY_VOTE_REGENERATION_SECONDS, DPAY_1_PERCENT, DPAY_100_PERCENT
+from dpaygo.constants import DPAY_VOTE_REGENERATION_SECONDS, DPAY_1_PERCENT, DPAY_100_PERCENT, DPAY_VOTING_MANA_REGENERATION_SECONDS
 log = logging.getLogger(__name__)
 
 
 class Account(BlockchainObject):
     """ This class allows to easily access Account data
-
         :param str account_name: Name of the account
         :param dpaygo.dpay.DPay dpay_instance: DPay
                instance
@@ -38,24 +37,19 @@ class Account(BlockchainObject):
         :rtype: dictionary
         :raises dpaygo.exceptions.AccountDoesNotExistsException: if account
                 does not exist
-
         Instances of this class are dictionaries that come with additional
         methods (see below) that allow dealing with an account and its
         corresponding functions.
-
         .. code-block:: python
-
             >>> from dpaygo.account import Account
             >>> account = Account("gtg")
             >>> print(account)
             <Account gtg>
             >>> print(account.balances) # doctest: +SKIP
-
         .. note:: This class comes with its own caching function to reduce the
                   load on the API server. Instances of this class can be
                   refreshed with ``Account.refresh()``. The cache can be
                   cleared with ``Account.clear_cache()``
-
     """
 
     type_id = 2
@@ -68,7 +62,6 @@ class Account(BlockchainObject):
         dpay_instance=None
     ):
         """Initialize an account
-
         :param str account: Name of the account
         :param dpaygo.dpay.DPay dpay_instance: DPay
                instance
@@ -213,7 +206,8 @@ class Account(BlockchainObject):
         ]
         for p in amounts:
             if p in output:
-                output[p] = output.get(p, Amount("0.000 BBD", dpay_instance=self.dpay)).json()
+                if p in output:
+                    output[p] = output.get(p).json()
         return json.loads(str(json.dumps(output)))
 
     def getSimilarAccountNames(self, limit=5):
@@ -223,15 +217,12 @@ class Account(BlockchainObject):
     def get_similar_account_names(self, limit=5):
         """ Returns ``limit`` account names similar to the current account
             name as a list
-
             :param int limit: limits the number of accounts, which will be
                 returned
             :returns: Similar account names as list
             :rtype: list
-
             This is a wrapper around ``Blockchain.get_similar_account_names()``
             using the current account name as reference.
-
         """
         b = Blockchain(dpay_instance=self.dpay)
         return b.get_similar_account_names(self.name, limit=limit)
@@ -259,7 +250,7 @@ class Account(BlockchainObject):
         return self.get_reputation()
 
     @property
-    def bp(self):
+    def sp(self):
         """ Returns the accounts BEX Power
         """
         return self.get_dpay_power()
@@ -340,29 +331,32 @@ class Account(BlockchainObject):
         """ Returns the account voting power in the range of 0-100%
         """
         if with_regeneration:
+            regenerated_vp = 0
             if "last_vote_time" in self:
                 last_vote_time = self["last_vote_time"]
+                diff_in_seconds = (addTzInfo(datetime.utcnow()) - (last_vote_time)).total_seconds()
+                regenerated_vp = diff_in_seconds * DPAY_100_PERCENT / DPAY_VOTE_REGENERATION_SECONDS / 100
             elif "voting_manabar" in self:
                 last_vote_time = self["voting_manabar"]["last_update_time"]
-            diff_in_seconds = (addTzInfo(datetime.utcnow()) - (last_vote_time)).total_seconds()
-            regenerated_vp = diff_in_seconds * DPAY_100_PERCENT / DPAY_VOTE_REGENERATION_SECONDS / 100
+                diff_in_seconds = (addTzInfo(datetime.utcnow()) - (last_vote_time)).total_seconds()
+                regenerated_vp = diff_in_seconds * DPAY_100_PERCENT / DPAY_VOTING_MANA_REGENERATION_SECONDS / 100
         else:
             regenerated_vp = 0
         if "voting_power" in self:
             total_vp = (self["voting_power"] / 100 + regenerated_vp)
         elif "voting_manabar" in self:
-            total_vp = (self["voting_manabar"]["current_mana"] / 100 + regenerated_vp)
+            total_vp = int(self["voting_manabar"]["current_mana"]) / 100 + regenerated_vp
         if total_vp > 100:
             return 100
         if total_vp < 0:
             return 0
         return total_vp
 
-    def get_dpay_power(self, onlyOwnSP=False):
-        """ Returns the account BEX power
+    def get_dpay_power(self, onlyOwnBP=False):
+        """ Returns the account BEX Power
         """
         vests = (self["vesting_shares"])
-        if not onlyOwnSP and "delegated_vesting_shares" in self and "received_vesting_shares" in self:
+        if not onlyOwnBP and "delegated_vesting_shares" in self and "received_vesting_shares" in self:
             vests = vests - (self["delegated_vesting_shares"]) + (self["received_vesting_shares"])
         return self.dpay.vests_to_bp(vests)
 
@@ -372,21 +366,18 @@ class Account(BlockchainObject):
         if voting_power is None:
             voting_power = self.get_voting_power()
         if dpay_power is None:
-            bp = self.get_dpay_power()
+            sp = self.get_dpay_power()
         else:
-            bp = dpay_power
+            sp = dpay_power
 
         VoteValue = self.dpay.bp_to_bbd(bp, voting_power=voting_power * 100, vote_pct=voting_weight * 100, not_broadcasted_vote=not_broadcasted_vote)
         return VoteValue
 
-    def get_vote_pct_for_bbd(self, bbd, voting_power=None, dpay_power=None, not_broadcasted_vote=True):
+    def get_vote_pct_for_BBD(self, bbd, voting_power=None, dpay_power=None, not_broadcasted_vote=True):
         """ Returns the voting percentage needed to have a vote worth a given number of BBD.
-
             If the returned number is bigger than 10000 or smaller than -10000,
             the given BBD value is too high for that account
-
-            :param str/int/Amount BBD: The amount of BBD in vote value
-
+            :param str/int/Amount bbd: The amount of BBD in vote value
         """
         if voting_power is None:
             voting_power = self.get_voting_power()
@@ -417,18 +408,14 @@ class Account(BlockchainObject):
 
     def get_recharge_time_str(self, voting_power_goal=100):
         """ Returns the account recharge time as string
-
             :param float voting_power_goal: voting power goal in percentage (default is 100)
-
         """
         remainingTime = self.get_recharge_timedelta(voting_power_goal=voting_power_goal)
         return formatTimedelta(remainingTime)
 
     def get_recharge_timedelta(self, voting_power_goal=100):
         """ Returns the account voting power recharge time as timedelta object
-
             :param float voting_power_goal: voting power goal in percentage (default is 100)
-
         """
         missing_vp = voting_power_goal - self.get_voting_power()
         if missing_vp < 0:
@@ -438,30 +425,23 @@ class Account(BlockchainObject):
 
     def get_recharge_time(self, voting_power_goal=100):
         """ Returns the account voting power recharge time in minutes
-
             :param float voting_power_goal: voting power goal in percentage (default is 100)
-
         """
         return addTzInfo(datetime.utcnow()) + self.get_recharge_timedelta(voting_power_goal)
 
     def get_feed(self, start_entry_id=0, limit=100, raw_data=False, short_entries=False, account=None):
         """ Returns a list of items in an account’s feed
-
             :param int start_entry_id: default is 0
             :param int limit: default is 100
             :param bool raw_data: default is False
             :param bool short_entries: when set to True and raw_data is True, get_feed_entries is used istead of get_feed
             :param str account: When set, a different account name is used (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
-                >>> account = Account("dsite")
+                >>> account = Account("jared")
                 >>> account.get_feed(0, 1, raw_data=True)
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -500,65 +480,50 @@ class Account(BlockchainObject):
     def get_feed_entries(self, start_entry_id=0, limit=100, raw_data=True,
                          account=None):
         """ Returns a list of entries in an account’s feed
-
             :param int start_entry_id: default is 0
             :param int limit: default is 100
             :param bool raw_data: default is False
             :param bool short_entries: when set to True and raw_data is True, get_feed_entries is used istead of get_feed
             :param str account: When set, a different account name is used (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
-                >>> account = Account("dsite")
+                >>> account = Account("jared")
                 >>> account.get_feed_entries(0, 1)
                 []
-
         """
         return self.get_feed(start_entry_id=start_entry_id, limit=limit, raw_data=raw_data, short_entries=True, account=account)
 
     def get_blog_entries(self, start_entry_id=0, limit=100, raw_data=True,
                          account=None):
         """ Returns the list of blog entries for an account
-
             :param int start_entry_id: default is 0
             :param int limit: default is 100
             :param bool raw_data: default is False
             :param str account: When set, a different account name is used (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
-                >>> account = Account("dsite")
+                >>> account = Account("jared")
                 >>> entry = account.get_blog_entries(0, 1, raw_data=True)[0]
                 >>> print("%s - %s - %s - %s" % (entry["author"], entry["permlink"], entry["blog"], entry["reblog_on"]))
-                dsite - firstpost - dsite - 1970-01-01T00:00:00
-
+                jared - firstpost - jared - 1970-01-01T00:00:00
         """
         return self.get_blog(start_entry_id=start_entry_id, limit=limit, raw_data=raw_data, short_entries=True, account=account)
 
     def get_blog(self, start_entry_id=0, limit=100, raw_data=False, short_entries=False, account=None):
         """ Returns the list of blog entries for an account
-
             :param int start_entry_id: default is 0
             :param int limit: default is 100
             :param bool raw_data: default is False
             :param bool short_entries: when set to True and raw_data is True, get_blog_entries is used istead of get_blog
             :param str account: When set, a different account name is used (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
-                >>> account = Account("dsite")
+                >>> account = Account("jared")
                 >>> account.get_blog(0, 1)
-                [<Comment @dsite/firstpost>]
-
+                [<Comment @jared/firstpost>]
         """
         if account is None:
             account = self["name"]
@@ -596,18 +561,13 @@ class Account(BlockchainObject):
 
     def get_blog_authors(self, account=None):
         """ Returns a list of authors that have had their content reblogged on a given blog account
-
             :param str account: When set, a different account name is used (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
-                >>> account = Account("dsite")
+                >>> account = Account("jared")
                 >>> account.get_blog_authors()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -754,21 +714,16 @@ class Account(BlockchainObject):
 
     def get_balances(self):
         """ Returns all account balances as dictionary
-
             :returns: Account balances
             :rtype: dictionary
-
             Sample output:
-
                 .. code-block:: js
-
                     {
                         'available': [102.985 BEX, 0.008 BBD, 146273.695970 VESTS],
                         'savings': [0.000 BEX, 0.000 BBD],
                         'rewards': [0.000 BEX, 0.000 BBD, 0.000000 VESTS],
                         'total': [102.985 BEX, 0.008 BBD, 146273.695970 VESTS]
                     }
-
         """
         return {
             'available': self.available_balances,
@@ -780,22 +735,17 @@ class Account(BlockchainObject):
     def get_balance(self, balances, symbol):
         """ Obtain the balance of a specific Asset. This call returns instances of
             :class:`dpaygo.amount.Amount`. Available balance types:
-
             * "available"
             * "saving"
             * "reward"
             * "total"
-
             :param str balances: Defines the balance type
             :param (str, dict) symbol: Can be "BBD", "BEX" or "VESTS
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_balance("rewards", "BBD")
                 0.000 BBD
-
         """
         if isinstance(balances, string_types):
             if balances == "available":
@@ -819,14 +769,10 @@ class Account(BlockchainObject):
 
     def interest(self):
         """ Calculate interest for an account
-
             :param str account: Account name to get interest for
             :rtype: dictionary
-
             Sample output:
-
             .. code-block:: js
-
                 {
                     'interest': 0.0,
                     'last_payment': datetime.datetime(2018, 1, 26, 5, 50, 27, tzinfo=<UTC>),
@@ -834,7 +780,6 @@ class Account(BlockchainObject):
                     'next_payment_duration': datetime.timedelta(-65, 52132, 684026),
                     'interest_rate': 0.0
                 }
-
         """
         last_payment = (self["bbd_last_interest_payment"])
         next_payment = last_payment + timedelta(days=30)
@@ -853,7 +798,6 @@ class Account(BlockchainObject):
     @property
     def is_fully_loaded(self):
         """ Is this instance fully loaded / e.g. all data available?
-
             :rtype: bool
         """
         return (self.full)
@@ -879,18 +823,13 @@ class Account(BlockchainObject):
 
     def get_bandwidth(self):
         """ Returns used and allocated bandwidth
-
             :rtype: dict
-
             Sample output:
-
                 .. code-block:: js
-
                     {
                         'used': 0,
                         'allocated': 2211037
                     }
-
         """
         account = self["name"]
         global_properties = self.dpay.get_dynamic_global_properties()
@@ -928,18 +867,13 @@ class Account(BlockchainObject):
 
     def get_owner_history(self, account=None):
         """ Returns the owner history of an account.
-
             :param str account: When set, a different account is used for the request (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_owner_history()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -955,18 +889,13 @@ class Account(BlockchainObject):
 
     def get_conversion_requests(self, account=None):
         """ Returns a list of BBD conversion request
-
             :param str account: When set, a different account is used for the request (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_conversion_requests()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -982,19 +911,15 @@ class Account(BlockchainObject):
 
     def get_vesting_delegations(self, start_account="", limit=100, account=None):
         """ Returns the vesting delegations by an account.
-
             :param str account: When set, a different account is used for the request (Default is object account name)
             :param str start_account: Only used in pre-appbase nodes
             :param int limit: Only used in pre-appbase nodes
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_vesting_delegations()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -1010,18 +935,13 @@ class Account(BlockchainObject):
 
     def get_withdraw_routes(self, account=None):
         """ Returns the withdraw routes for an account.
-
             :param str account: When set, a different account is used for the request (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_withdraw_routes()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -1037,19 +957,14 @@ class Account(BlockchainObject):
 
     def get_savings_withdrawals(self, direction="from", account=None):
         """ Returns the list of savings withdrawls for an account.
-
             :param str account: When set, a different account is used for the request (Default is object account name)
             :param str direction: Can be either from or to (only non appbase nodes)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_savings_withdrawals()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -1067,17 +982,13 @@ class Account(BlockchainObject):
 
     def get_recovery_request(self, account=None):
         """ Returns the recovery request for an account
-
             :param str account: When set, a different account is used for the request (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_recovery_request()
-
+                []
         """
         if account is None:
             account = self["name"]
@@ -1093,18 +1004,14 @@ class Account(BlockchainObject):
 
     def get_escrow(self, escrow_id=0, account=None):
         """ Returns the escrow for a certain account by id
-
             :param int escrow_id: Id (only pre appbase)
             :param str account: When set, a different account is used for the request (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_escrow(1234)
-
+                []
         """
         if account is None:
             account = self["name"]
@@ -1120,19 +1027,14 @@ class Account(BlockchainObject):
 
     def verify_account_authority(self, keys, account=None):
         """ Returns true if the signers have enough authority to authorize an account.
-
             :param list keys: public key
             :param str account: When set, a different account is used for the request (Default is object account name)
-
             :rtype: dict
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
-                >>> account = Account("dsite")
-                >>> print(account.verify_account_authority(["DWB7Q2rLBqzPzFeteQZewv9Lu3NLE69fZoLeL6YK59t7UmssCBNTU"])["valid"])
+                >>> account = Account("jared")
+                >>> print(account.verify_account_authority(["STM7Q2rLBqzPzFeteQZewv9Lu3NLE69fZoLeL6YK59t7UmssCBNTU"])["valid"])
                 False
-
         """
         if account is None:
             account = self["name"]
@@ -1153,18 +1055,13 @@ class Account(BlockchainObject):
 
     def get_tags_used_by_author(self, account=None):
         """ Returns a list of tags used by an author.
-
             :param str account: When set, a different account is used for the request (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_tags_used_by_author()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -1180,20 +1077,15 @@ class Account(BlockchainObject):
 
     def get_expiring_vesting_delegations(self, after=None, limit=1000, account=None):
         """ Returns the expirations for vesting delegations.
-
             :param datetime after : expiration after (only for pre appbase nodes)
             :param int limit: limits number of shown entries (only for pre appbase nodes)
             :param str account: When set, a different account is used for the request (Default is object account name)
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_expiring_vesting_delegations()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -1211,16 +1103,12 @@ class Account(BlockchainObject):
 
     def get_account_votes(self, account=None):
         """ Returns all votes that the account has done
-
             :rtype: list
-
             .. code-block:: python
-
                 >>> from dpaygo.account import Account
                 >>> account = Account("dpaygo.app")
                 >>> account.get_account_votes()
                 []
-
         """
         if account is None:
             account = self["name"]
@@ -1236,7 +1124,6 @@ class Account(BlockchainObject):
 
     def get_vote(self, comment):
         """Returns a vote if the account has already voted for comment.
-
             :param str/Comment comment: can be a Comment object or a authorpermlink
         """
         from dpaygo.comment import Comment
@@ -1248,7 +1135,6 @@ class Account(BlockchainObject):
 
     def has_voted(self, comment):
         """Returns if the account has already voted for comment
-
             :param str/Comment comment: can be a Comment object or a authorpermlink
         """
         from dpaygo.comment import Comment
@@ -1258,7 +1144,6 @@ class Account(BlockchainObject):
 
     def virtual_op_count(self, until=None):
         """ Returns the number of individual account transactions
-
             :rtype: list
         """
         if until is not None:
@@ -1292,34 +1177,26 @@ class Account(BlockchainObject):
 
     def estimate_virtual_op_num(self, blocktime, stop_diff=0, max_count=100):
         """ Returns an estimation of an virtual operation index for a given time or blockindex
-
             :param int/datetime blocktime: start time or start block index from which account
                 operation should be fetched
             :param int stop_diff: Sets the difference between last estimation and
                 new estimation at which the estimation stops. Must not be zero. (default is 1)
             :param int max_count: sets the maximum number of iterations. -1 disables this (default 100)
-
             .. testsetup::
-
                 import pytz
                 from dpaygo.account import Account
                 from dpaygo.blockchain import Blockchain
                 from datetime import datetime, timedelta
                 from timeit import time as t
-
             .. testcode::
-
                 utc = pytz.timezone('UTC')
                 start_time = utc.localize(datetime.utcnow()) - timedelta(days=7)
                 acc = Account("gtg")
                 start_op = acc.estimate_virtual_op_num(start_time)
-
                 b = Blockchain()
                 start_block_num = b.get_estimated_block_num(start_time)
                 start_op2 = acc.estimate_virtual_op_num(start_block_num)
-
             .. testcode::
-
                 acc = Account("gtg")
                 block_num = 21248120
                 start = t.time()
@@ -1329,7 +1206,6 @@ class Account(BlockchainObject):
                 for h in acc.get_account_history(op_num, 0):
                     block_est = h["block"]
                 print(block_est - block_num)
-
         """
         def get_blocknum(index):
             op = self._get_account_history(start=(index))
@@ -1415,7 +1291,6 @@ class Account(BlockchainObject):
 
     def get_curation_reward(self, days=7):
         """Returns the curation reward of the last `days` days
-
             :param int days: limit number of days to be included int the return value
         """
         stop = addTzInfo(datetime.utcnow()) - timedelta(days=days)
@@ -1427,20 +1302,15 @@ class Account(BlockchainObject):
     def curation_stats(self):
         """Returns the curation reward of the last 24h and 7d and the average
             of the last 7 days
-
             :returns: Account curation
             :rtype: dictionary
-
             Sample output:
-
             .. code-block:: js
-
                 {
                     '24hr': 0.0,
                     '7d': 0.0,
                     'avg': 0.0
                 }
-
         """
         return {"24hr": self.get_curation_reward(days=1),
                 "7d": self.get_curation_reward(days=7),
@@ -1449,7 +1319,6 @@ class Account(BlockchainObject):
     def get_account_history(self, index, limit, order=-1, start=None, stop=None, use_block_num=True, only_ops=[], exclude_ops=[], raw_output=False):
         """ Returns a generator for individual account transactions. This call can be used in a
             ``for`` loop.
-
             :param int index: first number of transactions to return
             :param int limit: limit number of transactions to return
             :param int/datetime start: start number/date of transactions to
@@ -1465,13 +1334,11 @@ class Account(BlockchainObject):
             :param int order: 1 for chronological, -1 for reverse order
             :param bool raw_output: if False, the output is a dict, which
                 includes all values. Otherwise, the output is list.
-
             ... note::
                 only_ops and exclude_ops takes an array of strings:
                 The full list of operation ID's can be found in
                 dpaygobase.operationids.ops.
                 Example: ['transfer', 'vote']
-
         """
         if order != -1 and order != 1:
             raise ValueError("order must be -1 or 1!")
@@ -1554,7 +1421,6 @@ class Account(BlockchainObject):
         """ Returns a generator for individual account transactions. The
             earlist operation will be first. This call can be used in a
             ``for`` loop.
-
             :param int/datetime start: start number/date of transactions to
                 return (*optional*)
             :param int/datetime stop: stop number/date of transactions to
@@ -1568,20 +1434,15 @@ class Account(BlockchainObject):
             :param int batch_size: internal api call batch size (*optional*)
             :param bool raw_output: if False, the output is a dict, which
                 includes all values. Otherwise, the output is list.
-
             ... note::
                 only_ops and exclude_ops takes an array of strings:
                 The full list of operation ID's can be found in
                 dpaygobase.operationids.ops.
                 Example: ['transfer', 'vote']
-
             .. testsetup::
-
                 from dpaygo.account import Account
                 from datetime import datetime
-
             .. testcode::
-
                 acc = Account("gtg")
                 max_op_count = acc.virtual_op_count()
                 # Returns the 100 latest operations
@@ -1589,13 +1450,9 @@ class Account(BlockchainObject):
                 for h in acc.history(start=max_op_count - 99, stop=max_op_count, use_block_num=False):
                     acc_op.append(h)
                 len(acc_op)
-
             .. testoutput::
-
                 100
-
             .. testcode::
-
                 acc = Account("test")
                 max_block = 21990141
                 # Returns the account operation inside the last 100 block. This can be empty.
@@ -1603,13 +1460,9 @@ class Account(BlockchainObject):
                 for h in acc.history(start=max_block - 99, stop=max_block, use_block_num=True):
                     acc_op.append(h)
                 len(acc_op)
-
             .. testoutput::
-
                 0
-
             .. testcode::
-
                 acc = Account("test")
                 start_time = datetime(2018, 3, 1, 0, 0, 0)
                 stop_time = datetime(2018, 3, 2, 0, 0, 0)
@@ -1618,11 +1471,8 @@ class Account(BlockchainObject):
                 for h in acc.history(start=start_time, stop=stop_time):
                     acc_op.append(h)
                 len(acc_op)
-
             .. testoutput::
-
                 0
-
         """
         _limit = batch_size
         max_index = self.virtual_op_count()
@@ -1714,7 +1564,6 @@ class Account(BlockchainObject):
         """ Returns a generator for individual account transactions. The
             latest operation will be first. This call can be used in a
             ``for`` loop.
-
             :param int/datetime start: start number/date of transactions to
                 return. If negative the virtual_op_count is added. (*optional*)
             :param int/datetime stop: stop number/date of transactions to
@@ -1728,20 +1577,15 @@ class Account(BlockchainObject):
             :param int batch_size: internal api call batch size (*optional*)
             :param bool raw_output: if False, the output is a dict, which
                 includes all values. Otherwise, the output is list.
-
             ... note::
                 only_ops and exclude_ops takes an array of strings:
                 The full list of operation ID's can be found in
                 dpaygobase.operationids.ops.
                 Example: ['transfer', 'vote']
-
             .. testsetup::
-
                 from dpaygo.account import Account
                 from datetime import datetime
-
             .. testcode::
-
                 acc = Account("gtg")
                 max_op_count = acc.virtual_op_count()
                 # Returns the 100 latest operations
@@ -1749,13 +1593,9 @@ class Account(BlockchainObject):
                 for h in acc.history_reverse(start=max_op_count, stop=max_op_count - 99, use_block_num=False):
                     acc_op.append(h)
                 len(acc_op)
-
             .. testoutput::
-
                 100
-
             .. testcode::
-
                 max_block = 21990141
                 acc = Account("test")
                 # Returns the account operation inside the last 100 block. This can be empty.
@@ -1763,13 +1603,9 @@ class Account(BlockchainObject):
                 for h in acc.history_reverse(start=max_block, stop=max_block-100, use_block_num=True):
                     acc_op.append(h)
                 len(acc_op)
-
             .. testoutput::
-
                 0
-
             .. testcode::
-
                 acc = Account("test")
                 start_time = datetime(2018, 4, 1, 0, 0, 0)
                 stop_time = datetime(2018, 3, 1, 0, 0, 0)
@@ -1778,11 +1614,8 @@ class Account(BlockchainObject):
                 for h in acc.history_reverse(start=start_time, stop=stop_time):
                     acc_op.append(h)
                 len(acc_op)
-
             .. testoutput::
-
                 0
-
         """
         _limit = batch_size
         first = self.virtual_op_count()
@@ -1863,27 +1696,22 @@ class Account(BlockchainObject):
 
     def mute(self, mute, account=None):
         """ Mute another account
-
             :param str mute: Mute this account
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
-
         """
         return self.follow(mute, what=["ignore"], account=account)
 
     def unfollow(self, unfollow, account=None):
         """ Unfollow/Unmute another account's blog
-
             :param str unfollow: Unfollow/Unmute this account
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
-
         """
         return self.follow(unfollow, what=[], account=account)
 
     def follow(self, other, what=["blog"], account=None):
         """ Follow/Unfollow/Mute/Unmute another account's blog
-
             :param str other: Follow this account
             :param list what: List of states to follow.
                 ``['blog']`` means to follow ``other``,
@@ -1892,7 +1720,6 @@ class Account(BlockchainObject):
                 (defaults to ``['blog']``)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
-
         """
         if account is None:
             account = self["name"]
@@ -1913,32 +1740,25 @@ class Account(BlockchainObject):
 
     def update_account_profile(self, profile, account=None, **kwargs):
         """ Update an account's profile in json_metadata
-
             :param dict profile: The new profile to use
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
-
             Sample profile structure:
-
             .. code-block:: js
-
                 {
-                    'name': 'Jared Rice Sr.',
-                    'about': 'dPayGo Developer',
-                    'location': 'Dallas, TX',
+                    'name': 'Holger',
+                    'about': 'dpaygo Developer',
+                    'location': 'Germany',
                     'profile_image': 'https://c1.staticflickr.com/5/4715/38733717165_7070227c89_n.jpg',
                     'cover_image': 'https://farm1.staticflickr.com/894/26382750057_69f5c8e568.jpg',
-                    'website': 'https://github.com/dpays/dpaygo'
+                    'website': 'https://github.com/holgern/dpaygo'
                 }
-
             .. code-block:: python
-
                 from dpaygo.account import Account
                 account = Account("test")
                 profile = account.profile
                 profile["about"] = "test account"
                 account.update_account_profile(profile)
-
         """
         if account is None:
             account = self
@@ -1957,11 +1777,9 @@ class Account(BlockchainObject):
 
     def update_account_metadata(self, metadata, account=None, **kwargs):
         """ Update an account's profile in json_metadata
-
             :param dict metadata: The new metadata to use
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
-
         """
         if account is None:
             account = self
@@ -1985,11 +1803,9 @@ class Account(BlockchainObject):
     # -------------------------------------------------------------------------
     def approvewitness(self, witness, account=None, approve=True, **kwargs):
         """ Approve a witness
-
             :param list witness: list of Witness name or id
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
-
         """
         if account is None:
             account = self
@@ -2012,7 +1828,6 @@ class Account(BlockchainObject):
 
     def disapprovewitness(self, witness, account=None, **kwargs):
         """ Disapprove a witness
-
             :param list witness: list of Witness name or id
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
@@ -2022,10 +1837,8 @@ class Account(BlockchainObject):
 
     def update_memo_key(self, key, account=None, **kwargs):
         """ Update an account's memo public key
-
             This method does **not** add any private keys to your
             wallet but merely changes the memo public key.
-
             :param str key: New memo public key
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
@@ -2051,7 +1864,6 @@ class Account(BlockchainObject):
     # -------------------------------------------------------------------------
     def transfer(self, to, amount, asset, memo="", account=None, **kwargs):
         """ Transfer an asset to another account.
-
             :param str to: Recipient
             :param float amount: Amount to transfer
             :param str asset: Asset to transfer
@@ -2059,18 +1871,14 @@ class Account(BlockchainObject):
                 messaging
             :param str account: (optional) the source account for the transfer
                 if not ``default_account``
-
-
             transfer example:
             .. code-block:: python
-
                 from dpaygo.account import Account
                 from dpaygo import DPay
                 active_wif = "5xxxx"
                 stm = DPay(keys=[active_wif])
                 acc = Account("test", dpay_instance=stm)
                 acc.transfer("test1", 1, "BEX", "test")
-
         """
 
         if account is None:
@@ -2099,7 +1907,6 @@ class Account(BlockchainObject):
 
     def transfer_to_vesting(self, amount, to=None, account=None, **kwargs):
         """ Vest BEX
-
             :param float amount: Amount to transfer
             :param str to: Recipient (optional) if not set equal to account
             :param str account: (optional) the source account for the transfer
@@ -2127,13 +1934,11 @@ class Account(BlockchainObject):
 
     def convert(self, amount, account=None, request_id=None):
         """ Convert BEX Dollars to BEX (takes 3.5 days to settle)
-
             :param float amount: amount of BBD to convert
             :param str account: (optional) the source account for the transfer
                 if not ``default_account``
             :param str request_id: (optional) identifier for tracking the
                 conversion`
-
         """
         if account is None:
             account = self
@@ -2156,7 +1961,6 @@ class Account(BlockchainObject):
 
     def transfer_to_savings(self, amount, asset, memo, to=None, account=None, **kwargs):
         """ Transfer BBD or BEX into a 'savings' account.
-
             :param float amount: BEX or BBD amount
             :param float asset: 'BEX' or 'BBD'
             :param str memo: (optional) Memo
@@ -2164,7 +1968,6 @@ class Account(BlockchainObject):
                 not ``default_account``
             :param str account: (optional) the source account for the transfer
                 if not ``default_account``
-
         """
         if asset not in ['BEX', 'BBD']:
             raise AssertionError()
@@ -2198,7 +2001,6 @@ class Account(BlockchainObject):
                               to=None,
                               account=None, **kwargs):
         """ Withdraw BBD or BEX from 'savings' account.
-
             :param float amount: BEX or BBD amount
             :param float asset: 'BEX' or 'BBD'
             :param str memo: (optional) Memo
@@ -2208,7 +2010,6 @@ class Account(BlockchainObject):
                 not ``default_account``
             :param str account: (optional) the source account for the transfer
                 if not ``default_account``
-
         """
         if asset not in ['BEX', 'BBD']:
             raise AssertionError()
@@ -2240,12 +2041,10 @@ class Account(BlockchainObject):
 
     def cancel_transfer_from_savings(self, request_id, account=None, **kwargs):
         """ Cancel a withdrawal from 'savings' account.
-
             :param str request_id: Identifier for tracking or cancelling
                 the withdrawal
             :param str account: (optional) the source account for the transfer
                 if not ``default_account``
-
         """
         if account is None:
             account = self
@@ -2278,13 +2077,11 @@ class Account(BlockchainObject):
         By default, this will claim ``all`` outstanding balances. To bypass
         this behaviour, set desired claim amount by setting any of
         `reward_dpay`, `reward_bbd` or `reward_vests`.
-
         :param str reward_dpay: Amount of BEX you would like to claim.
         :param str reward_bbd: Amount of BBD you would like to claim.
         :param str reward_vests: Amount of VESTS you would like to claim.
         :param str account: The source account for the claim if not
             ``default_account`` is used.
-
         """
         if account is None:
             account = self
@@ -2318,7 +2115,6 @@ class Account(BlockchainObject):
     def delegate_vesting_shares(self, to_account, vesting_shares,
                                 account=None, **kwargs):
         """ Delegate BP to another account.
-
         :param str to_account: Account we are delegating shares to
             (delegatee).
         :param str vesting_shares: Amount of VESTS to delegate eg. `10000
@@ -2346,12 +2142,10 @@ class Account(BlockchainObject):
 
     def withdraw_vesting(self, amount, account=None, **kwargs):
         """ Withdraw VESTS from the vesting account.
-
             :param float amount: number of VESTS to withdraw over a period of
                 13 weeks
             :param str account: (optional) the source account for the transfer
                 if not ``default_account``
-
     """
         if account is None:
             account = self
@@ -2376,7 +2170,6 @@ class Account(BlockchainObject):
         """ Set up a vesting withdraw route. When vesting shares are
             withdrawn, they will be routed to these accounts based on the
             specified weights.
-
             :param str to: Recipient of the vesting withdrawal
             :param float percentage: The percent of the withdraw to go
                 to the 'to' account.
@@ -2384,7 +2177,6 @@ class Account(BlockchainObject):
             :param bool auto_vest: Set to true if the 'to' account
                 should receive the VESTS as VESTS, or false if it should
                 receive them as BEX. (defaults to ``False``)
-
         """
         if account is None:
             account = self
@@ -2406,7 +2198,6 @@ class Account(BlockchainObject):
     ):
         """ Give additional access to an account by some other public
             key or account.
-
             :param str foreign: The foreign account that will obtain access
             :param int weight: (optional) The weight to use. If not
                 define, the threshold will be used. If the weight is
@@ -2483,7 +2274,6 @@ class Account(BlockchainObject):
     ):
         """ Remove additional access to an account by some other public
             key or account.
-
             :param str foreign: The foreign account that will obtain access
             :param str permission: (optional) The actual permission to
                 modify (defaults to ``posting``)
@@ -2557,7 +2347,6 @@ class Account(BlockchainObject):
                 Note that RPC nodes keep a limited history of entries for the
                 user feed. Older entries may not be available via this call due
                 to these node limitations.
-
             :param int limit: (optional) stream the latest `limit`
                 feed entries. If unset (default), all available entries
                 are streamed.
@@ -2571,16 +2360,12 @@ class Account(BlockchainObject):
                 If set, `start_author` has to be set as well.
             :param str account: (optional) the account to get replies
                 to (defaults to ``default_account``)
-
             comment_history_reverse example:
-
             .. code-block:: python
-
                 from dpaygo.account import Account
                 acc = Account("ned")
                 for reply in acc.feed_history(limit=10):
                     print(reply)
-
         """
         if limit is not None:
             if not isinstance(limit, integer_types) or limit <= 0:
@@ -2605,7 +2390,7 @@ class Account(BlockchainObject):
                           tag=account['name'])
             results = Discussions_by_feed(query, dpay_instance=self.dpay)
             if len(results) == 0 or (start_permlink and len(results) == 1):
-                raise StopIteration
+                return
             if feed_count > 0 and start_permlink:
                 results = results[1:]  # strip duplicates from previous iteration
             for entry in results:
@@ -2614,14 +2399,13 @@ class Account(BlockchainObject):
                 start_permlink = entry['permlink']
                 start_author = entry['author']
                 if feed_count == limit:
-                    raise StopIteration
+                    return
 
     def blog_history(self, limit=None, start=-1, reblogs=True, account=None):
         """ stream the blog entries done by an account in reverse time order.
                 Note that RPC nodes keep a limited history of entries for the
                 user blog. Older blog posts of an account may not be available
                 via this call due to these node limitations.
-
             :param int limit: (optional) stream the latest `limit`
                 blog entries. If unset (default), all available blog
                 entries are streamed.
@@ -2633,16 +2417,12 @@ class Account(BlockchainObject):
                 reblogs/reposts are omitted.
             :param str account: (optional) the account to stream blog
                 entries for (defaults to ``default_account``)
-
             blog_history_reverse example:
-
             .. code-block:: python
-
                 from dpaygo.account import Account
-                acc = Account("dsiteblog")
+                acc = Account("jared")
                 for post in acc.blog_history(limit=10):
                     print(post)
-
         """
         if limit is not None:
             if not isinstance(limit, integer_types) or limit <= 0:
@@ -2674,7 +2454,7 @@ class Account(BlockchainObject):
                 results = Discussions_by_blog(query,
                                               dpay_instance=self.dpay)
             if len(results) == 0 or (start_permlink and len(results) == 1):
-                raise StopIteration
+                return
             if start_permlink:
                 results = results[1:]  # strip duplicates from previous iteration
             for post in results:
@@ -2686,7 +2466,7 @@ class Account(BlockchainObject):
                 start_permlink = post['permlink']
                 start_author = post['author']
                 if post_count == limit:
-                    raise StopIteration
+                    return
 
     def comment_history(self, limit=None, start_permlink=None,
                         account=None):
@@ -2695,7 +2475,6 @@ class Account(BlockchainObject):
                 for the user comments. Older comments by an account
                 may not be available via this call due to these node
                 limitations.
-
             :param int limit: (optional) stream the latest `limit`
                 comments. If unset (default), all available comments
                 are streamed.
@@ -2704,16 +2483,12 @@ class Account(BlockchainObject):
                 (default) starts with the latest available entry.
             :param str account: (optional) the account to stream
                 comments for (defaults to ``default_account``)
-
             comment_history_reverse example:
-
             .. code-block:: python
-
                 from dpaygo.account import Account
                 acc = Account("ned")
                 for comment in acc.comment_history(limit=10):
                     print(comment)
-
         """
         if limit is not None:
             if not isinstance(limit, integer_types) or limit <= 0:
@@ -2736,7 +2511,7 @@ class Account(BlockchainObject):
             results = Discussions_by_comments(query,
                                               dpay_instance=self.dpay)
             if len(results) == 0 or (start_permlink and len(results) == 1):
-                raise StopIteration
+                return
             if comment_count > 0 and start_permlink:
                 results = results[1:]  # strip duplicates from previous iteration
             for comment in results:
@@ -2746,7 +2521,7 @@ class Account(BlockchainObject):
                 yield comment
                 start_permlink = comment['permlink']
                 if comment_count == limit:
-                    raise StopIteration
+                    return
 
     def reply_history(self, limit=None, start_author=None,
                       start_permlink=None, account=None):
@@ -2755,7 +2530,6 @@ class Account(BlockchainObject):
                 for the replies to an author. Older replies to an account
                 may not be available via this call due to these node
                 limitations.
-
             :param int limit: (optional) stream the latest `limit`
                 replies. If unset (default), all available replies
                 are streamed.
@@ -2769,16 +2543,12 @@ class Account(BlockchainObject):
                 If set, `start_author` has to be set as well.
             :param str account: (optional) the account to get replies
                 to (defaults to ``default_account``)
-
             comment_history_reverse example:
-
             .. code-block:: python
-
                 from dpaygo.account import Account
                 acc = Account("ned")
                 for reply in acc.reply_history(limit=10):
                     print(reply)
-
         """
         if limit is not None:
             if not isinstance(limit, integer_types) or limit <= 0:
@@ -2808,7 +2578,7 @@ class Account(BlockchainObject):
             results = Replies_by_last_update(query,
                                              dpay_instance=self.dpay)
             if len(results) == 0 or (start_permlink and len(results) == 1):
-                raise StopIteration
+                return
             if reply_count > 0 and start_permlink:
                 results = results[1:]  # strip duplicates from previous iteration
             for reply in results:
@@ -2819,7 +2589,7 @@ class Account(BlockchainObject):
                 start_author = reply['author']
                 start_permlink = reply['permlink']
                 if reply_count == limit:
-                    raise StopIteration
+                    return
 
 
 class AccountsObject(list):
@@ -2880,7 +2650,6 @@ class AccountsObject(list):
 
 class Accounts(AccountsObject):
     """ Obtain a list of accounts
-
         :param list name_list: list of accounts to fetch
         :param int batch_limit: (optional) maximum number of accounts
             to fetch per call, defaults to 100
