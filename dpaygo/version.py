@@ -1,2 +1,2 @@
 """THIS FILE IS GENERATED FROM dpaygo SETUP.PY."""
-version = '0.01.06'
+version = '0.01.07'
