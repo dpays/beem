@@ -99,7 +99,7 @@ def unlock_wallet(stm, password=None):
         return True
     password_storage = stm.config["password_storage"]
     if not password and KEYRING_AVAILABLE and password_storage == "keyring":
-        password = keyring.get_password("beem", "wallet")
+        password = keyring.get_password("dpaygo", "wallet")
     if not password and password_storage == "environment" and "UNLOCK" in os.environ:
         password = os.environ.get("UNLOCK")
     if bool(password):
@@ -940,7 +940,7 @@ def changewalletpassphrase():
         return
     password_storage = stm.config["password_storage"]
     if KEYRING_AVAILABLE and password_storage == "keyring":
-        keyring.set_password("beem", "wallet", newpassword)
+        keyring.set_password("dpaygo", "wallet", newpassword)
     elif password_storage == "environment":
         print("The new wallet password can be stored in the UNLOCK invironment variable to skip password prompt!")
     stm.wallet.changePassphrase(newpassword)
