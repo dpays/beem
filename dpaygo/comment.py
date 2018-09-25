@@ -19,28 +19,23 @@ from .blockchainobject import BlockchainObject
 from .exceptions import ContentDoesNotExistsException, VotingInvalidOnArchivedPost
 from dpaygobase import operations
 from dpaygographenebase.py23 import py23_bytes, bytes_types, integer_types, string_types, text_type
-from dpaygo.constants import DPAY_REVERSE_AUCTION_WINDOW_SECONDS, DPAY_100_PERCENT, DPAY_1_PERCENT
+from dpaygo.constants import DPAY_REVERSE_AUCTION_WINDOW_SECONDS_HF6, DPAY_REVERSE_AUCTION_WINDOW_SECONDS_HF20, DPAY_100_PERCENT, DPAY_1_PERCENT
 log = logging.getLogger(__name__)
 
 
 class Comment(BlockchainObject):
     """ Read data about a Comment/Post in the chain
-
         :param str authorperm: identifier to post/comment in the form of
             ``@author/permlink``
         :param dpay dpay_instance: DPay() instance to use when accessing a RPC
-
-
         .. code-block:: python
-
-           >>> from dpaygo.comment import Comment
-           >>> from dpaygo.account import Account
+           >>> from beem.comment import Comment
+           >>> from beem.account import Account
            >>> acc = Account("gtg")
            >>> authorperm = acc.get_blog(limit=1)[0]["authorperm"]
            >>> c = Comment(authorperm)
            >>> postdate = c["created"]
            >>> postdate_str = c.json()["created"]
-
     """
     type_id = 8
 
@@ -305,7 +300,6 @@ class Comment(BlockchainObject):
 
     def estimate_curation_BBD(self, vote_value_BBD, estimated_value_BBD=None):
         """ Estimates curation reward
-
             :param float vote_value_BBD: The vote value in BBD for which the curation
                 should be calculated
             :param float estimated_value_BBD: When set, this value is used for calculate
@@ -322,13 +316,11 @@ class Comment(BlockchainObject):
     def get_curation_penalty(self, vote_time=None):
         """ If post is less than 30 minutes old, it will incur a curation
             reward penalty.
-
             :param datetime vote_time: A vote time can be given and the curation
                 penalty is calculated regarding the given time (default is None)
                 When set to None, the current date is used.
             :returns: Float number between 0 and 1 (0.0 -> no penalty, 1.0 -> 100 % curation penalty)
             :rtype: float
-
         """
         if vote_time is None:
             elapsed_seconds = self.time_elapsed().total_seconds()
@@ -338,14 +330,16 @@ class Comment(BlockchainObject):
             elapsed_seconds = (vote_time - self["created"]).total_seconds()
         else:
             raise ValueError("vote_time must be a string or a datetime")
-        reward = (elapsed_seconds / DPAY_REVERSE_AUCTION_WINDOW_SECONDS)
+        if self.dpay.hardfork >= 20:
+            reward = (elapsed_seconds / DPAY_REVERSE_AUCTION_WINDOW_SECONDS_HF20)
+        else:
+            reward = (elapsed_seconds / DPAY_REVERSE_AUCTION_WINDOW_SECONDS_HF6)
         if reward > 1:
             reward = 1.0
         return 1.0 - reward
 
     def get_vote_with_curation(self, voter=None, raw_data=False, pending_payout_value=None):
         """ Returns vote for voter. Returns None, if the voter cannot be found in `active_votes`.
-
             :param str voter: Voter for which the vote should be returned
             :param bool raw_data: If True, the raw data are returned
             :param float/str pending_payout_BBD: When not None this value instead of the current
@@ -364,7 +358,7 @@ class Comment(BlockchainObject):
         elif specific_vote is not None:
             curation_reward = self.get_curation_rewards(pending_payout_BBD=True, pending_payout_value=pending_payout_value)
             specific_vote["curation_reward"] = curation_reward["active_votes"][voter["name"]]
-            specific_vote["ROI"] = float(curation_reward["active_votes"][voter["name"]]) / float(voter.get_voting_value_bbd(voting_weight=specific_vote["percent"] / 100)) * 100
+            specific_vote["ROI"] = float(curation_reward["active_votes"][voter["name"]]) / float(voter.get_voting_value_BBD(voting_weight=specific_vote["percent"] / 100)) * 100
             return specific_vote
         else:
             return None
@@ -381,15 +375,12 @@ class Comment(BlockchainObject):
     def get_rewards(self):
         """ Returns the total_payout, author_payout and the curator payout in BBD.
             When the payout is still pending, the estimated payout is given out.
-
             Example:::
-
                 {
                     'total_payout': 9.956 BBD,
                     'author_payout': 7.166 BBD,
                     'curator_payout': 2.790 BBD
                 }
-
         """
         if self.is_pending():
             total_payout = Amount(self["pending_payout_value"], dpay_instance=self.dpay)
@@ -403,16 +394,13 @@ class Comment(BlockchainObject):
 
     def get_author_rewards(self):
         """ Returns the author rewards.
-
             Example:::
-
                 {
                     'pending_rewards': True,
                     'payout_BP': 0.912 BEX,
                     'payout_BBD': 3.583 BBD,
                     'total_payout_BBD': 7.166 BBD
                 }
-
         """
         if not self.is_pending():
             total_payout = Amount(self["total_payout_value"], dpay_instance=self.dpay)
@@ -437,30 +425,26 @@ class Comment(BlockchainObject):
 
     def get_curation_rewards(self, pending_payout_BBD=False, pending_payout_value=None):
         """ Returns the curation rewards.
-
             :param bool pending_payout_BBD: If True, the rewards are returned in BBD and not in BEX (default is False)
             :param float/str pending_payout_value: When not None this value instead of the current
                 value is used for calculating the rewards
-
             `pending_rewards` is True when
             the post is younger than 7 days. `unclaimed_rewards` is the
             amount of curation_rewards that goes to the author (self-vote or votes within
             the first 30 minutes). `active_votes` contains all voter with their curation reward.
-
             Example:::
-
                 {
                     'pending_rewards': True, 'unclaimed_rewards': 0.245 BEX,
                     'active_votes': {
-                        'jared': 0.006 BEX, 'nomoreheroes': 0.186 BEX,
-                        'stan': 0.000 BEX, 'michaelx': 0.015 BEX, 'cryptokong': 0.003 BEX,
-                        'freedomfirst': 0.003 BEX, 'mbex': 0.001 BEX, 'cointroller': 0.000 BEX,
-                        'dpolice': 0.123 BEX, 'onceuponatime': 0.002 BEX, 'dsite': 0.001 BEX,
-                        'dpay': 0.006 BEX, 'mattockfs': 0.001 BEX, 'initminer': 0.003 BEX, 'nickeles': 0.004 BEX,
-                        'lune': 0.010 BEX, 'bossdan': 0.000 BEX, 'bigg': 0.002 BEX, 'stormkrow': 0.008 BEX
+                        'leprechaun': 0.006 BEX, 'timcliff': 0.186 BEX,
+                        'st3llar': 0.000 BEX, 'crokkon': 0.015 BEX, 'feedyourminnows': 0.003 BEX,
+                        'isnochys': 0.003 BEX, 'loshcat': 0.001 BEX, 'greenorange': 0.000 BEX,
+                        'qustodian': 0.123 BEX, 'jpphotography': 0.002 BEX, 'thinkingmind': 0.001 BEX,
+                        'oups': 0.006 BEX, 'mattockfs': 0.001 BEX, 'holger80': 0.003 BEX, 'michaelizer': 0.004 BEX,
+                        'flugschwein': 0.010 BEX, 'ulisessabeque': 0.000 BEX, 'hakancelik': 0.002 BEX, 'sbi2': 0.008 BEX,
+                        'zcool': 0.000 BEX, 'dpayhq': 0.002 BEX, 'rowdiya': 0.000 BEX, 'qurator-tier-1-2': 0.012 BEX
                     }
                 }
-
         """
         median_price = Price(self.dpay.get_current_median_history(), dpay_instance=self.dpay)
         pending_rewards = False
@@ -520,7 +504,6 @@ class Comment(BlockchainObject):
 
     def get_replies(self, raw_data=False, identifier=None):
         """ Returns content replies
-
             :param bool raw_data: When set to False, the replies will be returned as Comment class objects
         """
         if not identifier:
@@ -570,11 +553,9 @@ class Comment(BlockchainObject):
 
     def upvote(self, weight=+100, voter=None):
         """ Upvote the post
-
             :param float weight: (optional) Weight for posting (-100.0 -
                 +100.0) defaults to +100.0
             :param str voter: (optional) Voting account
-
         """
         last_payout = self.get('last_payout', None)
         if last_payout is not None:
@@ -584,11 +565,9 @@ class Comment(BlockchainObject):
 
     def downvote(self, weight=-100, voter=None):
         """ Downvote the post
-
             :param float weight: (optional) Weight for posting (-100.0 -
                 +100.0) defaults to -100.0
             :param str voter: (optional) Voting account
-
         """
         last_payout = self.get('last_payout', None)
         if last_payout is not None:
@@ -598,14 +577,12 @@ class Comment(BlockchainObject):
 
     def vote(self, weight, account=None, identifier=None, **kwargs):
         """ Vote for a post
-
             :param float weight: Voting weight. Range: -100.0 - +100.0.
             :param str account: (optional) Account to use for voting. If
                 ``account`` is not defined, the ``default_account`` will be used
                 or a ValueError will be raised
             :param str identifier: Identifier for the post to vote. Takes the
                 form ``@author/permlink``.
-
         """
         if not account:
             if "default_account" in self.dpay.config:
@@ -637,13 +614,11 @@ class Comment(BlockchainObject):
 
     def edit(self, body, meta=None, replace=False):
         """ Edit an existing post
-
             :param str body: Body of the reply
             :param json meta: JSON meta object that can be attached to the
                 post. (optional)
             :param bool replace: Instead of calculating a *diff*, replace
                 the post entirely (defaults to ``False``)
-
         """
         if not meta:
             meta = {}
@@ -680,7 +655,6 @@ class Comment(BlockchainObject):
 
     def reply(self, body, title="", author="", meta=None):
         """ Reply to an existing post
-
             :param str body: Body of the reply
             :param str title: Title of the reply post
             :param str author: Author of reply (optional) if not provided
@@ -688,7 +662,6 @@ class Comment(BlockchainObject):
                 a ``ValueError`` will be raised.
             :param json meta: JSON meta object that can be attached to the
                 post. (optional)
-
         """
         return self.dpay.post(
             title,
@@ -699,18 +672,14 @@ class Comment(BlockchainObject):
 
     def delete(self, account=None, identifier=None):
         """ Delete an existing post/comment
-
             :param str account: (optional) Account to use for deletion. If
                 ``account`` is not defined, the ``default_account`` will be
                 taken or a ValueError will be raised.
-
             :param str identifier: (optional) Identifier for the post to delete.
                 Takes the form ``@author/permlink``. By default the current post
                 will be used.
-
             Note: a post/comment can only be deleted as long as it has no
                 replies and no positive rshares on it.
-
         """
         if not account:
             if "default_account" in self.dpay.config:
@@ -730,11 +699,9 @@ class Comment(BlockchainObject):
 
     def repost(self, identifier=None, account=None):
         """ Repost a post
-
             :param str identifier: post identifier (@<account>/<permlink>)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
-
         """
         if not account:
             account = self.dpay.configStorage.get("default_account")
@@ -757,7 +724,6 @@ class Comment(BlockchainObject):
 
 class RecentReplies(list):
     """ Obtain a list of recent replies
-
         :param str author: author
         :param bool skip_own: (optional) Skip replies of the author to him/herself.
             Default: True
@@ -781,7 +747,6 @@ class RecentReplies(list):
 
 class RecentByPath(list):
     """ Obtain a list of votes for an account
-
         :param str account: Account name
         :param dpay dpay_instance: DPay() instance to use when accesing a RPC
     """
