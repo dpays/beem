@@ -16,320 +16,23 @@ log = logging.getLogger(__name__)
 
 class NodeList(list):
     """ Returns a node list
-
         .. code-block:: python
-
             from dpaygo.nodelist import NodeList
             n = NodeList()
             nodes_urls = n.get_nodes()
-
     """
     def __init__(self):
         nodes = [
             {
-                "url": "wss://d.dpays.io",
-                "version": "0.19.6",
+                "url": "https://greatbase.dpays.io",
+                "version": "0.20.2",
                 "type": "appbase",
                 "owner": "dpay",
                 "score": 100
             },
             {
-                "url": "wss://d.dpays.io",
-                "version": "0.20.0",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://mbex.link",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://dpaystan.link",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://michaelx.link",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://dpay.nomoreheroes.link",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://dpay.indominon.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://freedomfirst.dpays.io",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://dpay.jrice.io",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://nickeles.dpays.io",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://tablecafe.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://d.dsite.io",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://d.dsocial.io",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://d.dpix.io",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://d.dwiki.io",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://controller.link",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://dallas.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://oregon.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://sf.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://iowa.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://sc.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://virginia.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://germany.dpayeurope.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://taiwan.dpayasia.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://d.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://maga.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://samiam.link",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://london.dpayeurope.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://west.dpayeurope.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://miami.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://chicago.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://la.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://paris.dpayeurope.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://atlanta.dpayusa.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://sydney.dpayau.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://kusknee.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://kong.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://lune.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://chiraag.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://morrison.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://quin.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://bossdan.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://bigg.dpayproducers.com",
-                "version": "0.19.6",
-                "type": "appbase",
-                "owner": "dpay",
-                "score": 100
-            },
-            {
-                "url": "wss://nefertiti.link",
-                "version": "0.19.6",
+                "url": "https://greatchain.dpays.io",
+                "version": "0.20.2",
                 "type": "appbase",
                 "owner": "dpay",
                 "score": 100
@@ -338,9 +41,7 @@ class NodeList(list):
 
     def update_nodes(self, weights=None, dpay_instance=None):
         """ Reads metadata from fullnodeupdate and recalculates the nodes score
-
             :params list/dict weight: can be used to weight the different benchmarks
-
             .. code-block:: python
                 from dpaygo.nodelist import NodeList
                 nl = NodeList()
@@ -410,15 +111,14 @@ class NodeList(list):
             new_nodes.append(new_node)
         super(NodeList, self).__init__(new_nodes)
 
-    def get_nodes(self, normal=True, appbase=True, dev=False, testnet=False, testnetdev=False, wss=True, https=True):
+    def get_nodes(self, normal=True, appbase=True, dev=False, testnet=False, testnetdev=False, wss=True, https=True, not_working=False):
         """ Returns nodes as list
-
-            :param bool normal: when True, nodes with version 0.19.6 are included
+            :param bool normal: when True, nodes with version 0.19.5 are included
             :param bool appbase: when True, nodes with version 0.19.11 are included
             :param bool dev: when True, dev nodes with version 0.19.11 are included
             :param bool testnet: when True, testnet nodes are included
             :param bool testnetdev: When True, testnet-dev nodes are included
-
+            :param bool not_working: When True, all nodes including not working ones will be returned
         """
         node_list = []
         node_type_list = []
@@ -433,7 +133,7 @@ class NodeList(list):
         if testnetdev:
             node_type_list.append("testnet-dev")
         for node in self:
-            if node["type"] in node_type_list and node["score"] >= 0:
+            if node["type"] in node_type_list and (node["score"] >= 0 or not_working):
                 if not https and node["url"][:5] == 'https':
                     continue
                 if not wss and node["url"][:3] == 'wss':
