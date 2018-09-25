@@ -477,7 +477,7 @@ class DPay(object):
             vests = vests.amount
         return vests / 1e6 * self.get_dpay_per_mvest(timestamp, use_stored_data=use_stored_data)
 
-    def sp_to_vests(self, sp, timestamp=None, use_stored_data=True):
+    def bp_to_vests(self, sp, timestamp=None, use_stored_data=True):
         """ Converts BP to vests
             :param float bp: BEX power to convert
             :param datetime timestamp: (Optional) Can be used to calculate
@@ -485,7 +485,7 @@ class DPay(object):
         """
         return sp * 1e6 / self.get_dpay_per_mvest(timestamp, use_stored_data=use_stored_data)
 
-    def sp_to_bbd(self, sp, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, not_broadcasted_vote=True, use_stored_data=True):
+    def bp_to_bbd(self, sp, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, not_broadcasted_vote=True, use_stored_data=True):
         """ Obtain the resulting BBD vote value from BEX Power
             :param number dpay_power: BEX Power
             :param int voting_power: voting power (100% = 10000)
@@ -494,7 +494,7 @@ class DPay(object):
             Only impactful for very big votes. Slight modification to the value calculation, as the not_broadcasted
             vote rshares decreases the reward pool.
         """
-        vesting_shares = int(self.sp_to_vests(sp, use_stored_data=use_stored_data))
+        vesting_shares = int(self.bp_to_vests(sp, use_stored_data=use_stored_data))
         return self.vests_to_bbd(vesting_shares, voting_power=voting_power, vote_pct=vote_pct, not_broadcasted_vote=not_broadcasted_vote, use_stored_data=use_stored_data)
 
     def vests_to_bbd(self, vests, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, not_broadcasted_vote=True, use_stored_data=True):
@@ -523,14 +523,14 @@ class DPay(object):
         used_power = int((used_power + max_vote_denom - 1) / max_vote_denom)
         return used_power
 
-    def sp_to_rshares(self, dpay_power, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, use_stored_data=True):
+    def bp_to_rshares(self, dpay_power, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, use_stored_data=True):
         """ Obtain the r-shares from BEX Power
             :param number dpay_power: BEX Power
             :param int voting_power: voting power (100% = 10000)
             :param int vote_pct: voting percentage (100% = 10000)
         """
         # calculate our account voting shares (from vests)
-        vesting_shares = int(self.sp_to_vests(dpay_power, use_stored_data=use_stored_data))
+        vesting_shares = int(self.bp_to_vests(dpay_power, use_stored_data=use_stored_data))
         return self.vests_to_rshares(vesting_shares, voting_power=voting_power, vote_pct=vote_pct, use_stored_data=use_stored_data)
 
     def vests_to_rshares(self, vests, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, use_stored_data=True):
@@ -611,7 +611,7 @@ class DPay(object):
         if dpay_power is not None and vests is not None:
             raise ValueError("Either dpay_power or vests has to be set. Not both!")
         if dpay_power is not None:
-            vests = int(self.sp_to_vests(dpay_power, use_stored_data=use_stored_data) * 1e6)
+            vests = int(self.bp_to_vests(dpay_power, use_stored_data=use_stored_data) * 1e6)
 
         if self.hardfork >= 20:
             rshares += math.copysign(self.get_dust_threshold(use_stored_data=use_stored_data), rshares)

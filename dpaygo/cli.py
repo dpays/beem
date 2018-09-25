@@ -41,6 +41,7 @@ from dpaygobase import operations
 from dpaygographenebase.account import PrivateKey, PublicKey, BrainKey
 from dpaygographenebase.base58 import Base58
 from dpaygo.nodelist import NodeList
+from dpaygo.conveyor import Conveyor
 
 
 click.disable_unicode_literals_warning = True
@@ -71,6 +72,7 @@ availableConfigurationKeys = [
     "client_id",
 ]
 
+
 def prompt_callback(ctx, param, value):
     if value in ["yes", "y", "ye"]:
         value = True
@@ -97,7 +99,7 @@ def unlock_wallet(stm, password=None):
         return True
     password_storage = stm.config["password_storage"]
     if not password and KEYRING_AVAILABLE and password_storage == "keyring":
-        password = keyring.get_password("dpaygo", "wallet")
+        password = keyring.get_password("beem", "wallet")
     if not password and password_storage == "environment" and "UNLOCK" in os.environ:
         password = os.environ.get("UNLOCK")
     if bool(password):
@@ -139,7 +141,7 @@ def node_answer_time(node):
 
 @click.group(chain=True)
 @click.option(
-    '--node', '-n', default="", help="URL for public dPay API (e.g. wss://dpayd.dpays.io)")
+    '--node', '-n', default="", help="URL for public dPay API (e.g. https://api.dpays.io)")
 @click.option(
     '--offline', '-o', is_flag=True, default=False, help="Prevent connecting to network")
 @click.option(
@@ -151,7 +153,7 @@ def node_answer_time(node):
 @click.option(
     '--create-link', '-l', is_flag=True, default=False, help="Creates dpayid links from all broadcast operations")
 @click.option(
-    '--dpayid', '-s', is_flag=True, default=False, help="Uses a dPayID token to broadcast (only broadcast operation with posting permission)")
+    '--dpayid', '-s', is_flag=True, default=False, help="Uses a dpayid token to broadcast (only broadcast operation with posting permission)")
 @click.option(
     '--expires', '-e', default=30,
     help='Delay in seconds until transactions are supposed to expire(defaults to 60)')
@@ -277,7 +279,7 @@ def nextnode(results):
     if not offline:
         t.add_row(["Version", stm.get_blockchain_version()])
     else:
-        t.add_row(["Version", "dpay is in offline mode..."])
+        t.add_row(["Version", "dpaypy is in offline mode..."])
     print(t)
 
 
@@ -381,7 +383,7 @@ def currentnode(version, url):
     if not offline:
         t.add_row(["Version", stm.get_blockchain_version()])
     else:
-        t.add_row(["Version", "dpay is in offline mode..."])
+        t.add_row(["Version", "dpaypy is in offline mode..."])
     print(t)
 
 
@@ -938,7 +940,7 @@ def changewalletpassphrase():
         return
     password_storage = stm.config["password_storage"]
     if KEYRING_AVAILABLE and password_storage == "keyring":
-        keyring.set_password("dpaygo", "wallet", newpassword)
+        keyring.set_password("beem", "wallet", newpassword)
     elif password_storage == "environment":
         print("The new wallet password can be stored in the UNLOCK invironment variable to skip password prompt!")
     stm.wallet.changePassphrase(newpassword)
@@ -1163,6 +1165,8 @@ def allow(foreign_account, permission, account, weight, threshold):
         from dpaygographenebase.account import PasswordKey
         pwd = click.prompt("Password for Key Derivation", confirmation_prompt=True, hide_input=True)
         foreign_account = format(PasswordKey(account, pwd, permission).get_public(), stm.prefix)
+    if threshold is not None:
+        threshold = int(threshold)
     tx = acc.allow(foreign_account, weight=weight, permission=permission, threshold=threshold)
     if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
         tx = stm.dpayid.url_from_tx(tx)
@@ -1188,6 +1192,8 @@ def disallow(foreign_account, permission, account, threshold):
     if permission not in ["posting", "active", "owner"]:
         print("Wrong permission, please use: posting, active or owner!")
         return
+    if threshold is not None:
+        threshold = int(threshold)
     acc = Account(account, dpay_instance=stm)
     if not foreign_account:
         from dpaygographenebase.account import PasswordKey
@@ -1790,9 +1796,9 @@ def openorders(account):
 
 @cli.command()
 @click.argument('identifier', nargs=1)
-@click.option('--account', '-a', help='Repost as this user')
-def repost(identifier, account):
-    """Repost an existing post"""
+@click.option('--account', '-a', help='Redpay as this user')
+def redpay(identifier, account):
+    """Redpay an existing post"""
     stm = shared_dpay_instance()
     if stm.rpc is not None:
         stm.rpc.rpcconnect()
@@ -1802,7 +1808,7 @@ def repost(identifier, account):
         return
     acc = Account(account, dpay_instance=stm)
     post = Comment(identifier, dpay_instance=stm)
-    tx = post.repost(account=acc)
+    tx = post.redpay(account=acc)
     if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
         tx = stm.dpayid.url_from_tx(tx)
     tx = json.dumps(tx, indent=4)
@@ -1893,13 +1899,13 @@ def witnessupdate(witness, maximum_block_size, account_creation_fee, bbd_interes
         return
     witness = Witness(witness, dpay_instance=stm)
     props = witness["props"]
-    if account_creation_fee:
+    if account_creation_fee is not None:
         props["account_creation_fee"] = str(
-            Amount("%f BEX" % account_creation_fee))
-    if maximum_block_size:
-        props["maximum_block_size"] = maximum_block_size
-    if bbd_interest_rate:
-        props["bbd_interest_rate"] = int(bbd_interest_rate * 100)
+            Amount("%f BEX" % float(account_creation_fee)))
+    if maximum_block_size is not None:
+        props["maximum_block_size"] = int(maximum_block_size)
+    if bbd_interest_rate is not None:
+        props["bbd_interest_rate"] = int(float(bbd_interest_rate) * 100)
     tx = witness.update(signing_key or witness["signing_key"], url or witness["url"], props)
     if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
         tx = stm.dpayid.url_from_tx(tx)
@@ -1967,7 +1973,7 @@ def witnesscreate(witness, pub_signing_key, maximum_block_size, account_creation
         return
     props = {
         "account_creation_fee":
-            Amount("%f BEX" % account_creation_fee, dpay_instance=stm),
+            Amount("%f BEX" % float(account_creation_fee), dpay_instance=stm),
         "maximum_block_size":
             int(maximum_block_size),
         "bbd_interest_rate":
@@ -1983,16 +1989,58 @@ def witnesscreate(witness, pub_signing_key, maximum_block_size, account_creation
 
 @cli.command()
 @click.argument('witness', nargs=1)
+@click.argument('wif', nargs=1)
+@click.option('--account_creation_fee', help='Account creation fee')
+@click.option('--account_subsidy_budget', help='Max block size')
+@click.option('--account_subsidy_decay', help='Max block size')
+@click.option('--maximum_block_size', help='Max block size')
+@click.option('--bbd_interest_rate', help='BBD interest rate in percent')
+@click.option('--new_signing_key', help='BBD interest rate in percent')
+@click.option('--url', help='Witness URL')
+def witnessproperties(witness, wif, account_creation_fee, account_subsidy_budget, account_subsidy_decay, maximum_block_size, bbd_interest_rate, new_signing_key, url):
+    """Update witness properties without pricefeed"""
+    stm = shared_dpay_instance()
+    if stm.rpc is not None:
+        stm.rpc.rpcconnect()
+    # if not unlock_wallet(stm):
+    #    return
+    props = {}
+    if account_creation_fee is not None:
+        props["account_creation_fee"] = Amount("%f BEX" % float(account_creation_fee), dpay_instance=stm)
+    if account_subsidy_budget is not None:
+        props["account_subsidy_budget"] = int(account_subsidy_budget)
+    if account_subsidy_decay is not None:
+        props["account_subsidy_decay"] = int(account_subsidy_decay)
+    if maximum_block_size is not None:
+        props["maximum_block_size"] = int(maximum_block_size)
+    if bbd_interest_rate is not None:
+        props["bbd_interest_rate"] = int(bbd_interest_rate * 100)
+    if new_signing_key is not None:
+        props["new_signing_key"] = new_signing_key
+    if url is not None:
+        props["url"] = url
+
+    tx = stm.witness_set_properties(wif, witness, props)
+    if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
+        tx = stm.dpayid.url_from_tx(tx)
+    tx = json.dumps(tx, indent=4)
+    print(tx)
+
+
+@cli.command()
+@click.argument('witness', nargs=1)
+@click.argument('wif', nargs=1, required=False)
 @click.option('--base', '-b', help='Set base manually, when not set the base is automatically calculated.')
-@click.option('--quote', '-q', help='DPay quote manually, when not set the base is automatically calculated.')
+@click.option('--quote', '-q', help='BEX quote manually, when not set the base is automatically calculated.')
 @click.option('--support-peg', help='Supports peg adjusting the quote, is overwritten by --set-quote!', is_flag=True, default=False)
-def witnessfeed(witness, base, quote, support_peg):
+def witnessfeed(witness, wif, base, quote, support_peg):
     """Publish price feed for a witness"""
     stm = shared_dpay_instance()
     if stm.rpc is not None:
         stm.rpc.rpcconnect()
-    if not unlock_wallet(stm):
-        return
+    if wif is None:
+        if not unlock_wallet(stm):
+            return
     witness = Witness(witness, dpay_instance=stm)
     market = Market(dpay_instance=stm)
     old_base = witness["bbd_exchange_rate"]["base"]
@@ -2024,7 +2072,11 @@ def witnessfeed(witness, base, quote, support_peg):
             base = Amount(base, "BBD", dpay_instance=stm)
     new_price = Price(base=base, quote=quote, dpay_instance=stm)
     print("New price %.3f (base: %s, quote %s)" % (float(new_price), base, quote))
-    tx = witness.feed_publish(base, quote=quote)
+    if wif is not None:
+        props = {"bbd_exchange_rate": new_price}
+        tx = stm.witness_set_properties(wif, witness["owner"], props)
+    else:
+        tx = witness.feed_publish(base, quote=quote)
     if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
         tx = stm.dpayid.url_from_tx(tx)
     tx = json.dumps(tx, indent=4)
@@ -2997,6 +3049,62 @@ def info(objects):
                 print("Post now known" % obj)
         else:
             print("Couldn't identify object to read")
+
+
+@cli.command()
+@click.argument('account', nargs=1, required=False)
+@click.option('--signing-account', '-s', help='Signing account, when empty account is used.')
+def userdata(account, signing_account):
+    """ Get the account's email address and phone number.
+        The request has to be signed by the requested account or an admin account.
+    """
+    stm = shared_dpay_instance()
+    if stm.rpc is not None:
+        stm.rpc.rpcconnect()
+    if not unlock_wallet(stm):
+        return
+    if not account:
+        if "default_account" in stm.config:
+            account = stm.config["default_account"]
+    account = Account(account, dpay_instance=stm)
+    if signing_account is not None:
+        signing_account = Account(signing_account, dpay_instance=stm)
+    c = Conveyor(dpay_instance=stm)
+    user_data = c.get_user_data(account, signing_account=signing_account)
+    t = PrettyTable(["Key", "Value"])
+    t.align = "l"
+    for key in user_data:
+        # hide internal config data
+        t.add_row([key, user_data[key]])
+    print(t)
+
+
+@cli.command()
+@click.argument('account', nargs=1, required=False)
+@click.option('--signing-account', '-s', help='Signing account, when empty account is used.')
+def featureflags(account, signing_account):
+    """ Get the account's feature flags.
+        The request has to be signed by the requested account or an admin account.
+    """
+    stm = shared_dpay_instance()
+    if stm.rpc is not None:
+        stm.rpc.rpcconnect()
+    if not unlock_wallet(stm):
+        return
+    if not account:
+        if "default_account" in stm.config:
+            account = stm.config["default_account"]
+    account = Account(account, dpay_instance=stm)
+    if signing_account is not None:
+        signing_account = Account(signing_account, dpay_instance=stm)
+    c = Conveyor(dpay_instance=stm)
+    user_data = c.get_feature_flags(account, signing_account=signing_account)
+    t = PrettyTable(["Key", "Value"])
+    t.align = "l"
+    for key in user_data:
+        # hide internal config data
+        t.add_row([key, user_data[key]])
+    print(t)
 
 
 if __name__ == "__main__":
