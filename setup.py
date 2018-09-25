@@ -16,7 +16,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.01.15'
+VERSION = '0.01.21'
 
 tests_require = ['mock >= 2.0.0', 'pytest', 'pytest-mock', 'parameterized']
 
@@ -34,7 +34,6 @@ requires = [
     "Click",
     "prettytable"
 ]
-
 
 def write_version_py(filename):
     """Write version."""
@@ -68,7 +67,7 @@ if __name__ == '__main__':
         description='Unofficial Python library for dPay',
         long_description=get_long_description(),
         download_url='https://github.com/dpays/dpaygo/tarball/' + VERSION,
-        author='Holger Nahrstaedt',
+        author='Jared Rice Sr.',
         author_email='jared@benchx.io',
         maintainer='Jared Rice Sr.',
         maintainer_email='jared@benchx.io',

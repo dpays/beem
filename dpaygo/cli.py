@@ -1797,7 +1797,7 @@ def openorders(account):
 @cli.command()
 @click.argument('identifier', nargs=1)
 @click.option('--account', '-a', help='Redpay as this user')
-def redpay(identifier, account):
+def repost(identifier, account):
     """Redpay an existing post"""
     stm = shared_dpay_instance()
     if stm.rpc is not None:
@@ -1808,7 +1808,7 @@ def redpay(identifier, account):
         return
     acc = Account(account, dpay_instance=stm)
     post = Comment(identifier, dpay_instance=stm)
-    tx = post.redpay(account=acc)
+    tx = post.repost(account=acc)
     if stm.unsigned and stm.nobroadcast and stm.dpayid is not None:
         tx = stm.dpayid.url_from_tx(tx)
     tx = json.dumps(tx, indent=4)
