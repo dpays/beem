@@ -1796,9 +1796,9 @@ def openorders(account):
 
 @cli.command()
 @click.argument('identifier', nargs=1)
-@click.option('--account', '-a', help='Redpay as this user')
+@click.option('--account', '-a', help='Repost as this user')
 def repost(identifier, account):
-    """Redpay an existing post"""
+    """Repost an existing post"""
     stm = shared_dpay_instance()
     if stm.rpc is not None:
         stm.rpc.rpcconnect()
