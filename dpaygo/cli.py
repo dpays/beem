@@ -602,7 +602,7 @@ def keygen(import_brain_key, sequence):
     t.align = "l"
     t.add_row(["Brain Key", bk.get_brainkey()])
     t.add_row(["Private Key", str(bk.get_private())])
-    t.add_row(["Public Key", format(bk.get_public(), "STM")])
+    t.add_row(["Public Key", format(bk.get_public(), "DWB")])
     print(t)
 
 
