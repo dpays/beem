@@ -18,11 +18,12 @@ from dpaygoapi.dpaynoderpc import DPayNodeRPC
 from dpaygoapi.exceptions import NoAccessApi, NoApiWithName
 from dpaygographenebase.account import PrivateKey, PublicKey
 from dpaygobase import transactions, operations
+from dpaygographenebase.chains import known_chains
 from .account import Account
 from .amount import Amount
 from .price import Price
 from .storage import configStorage as config
-from .version import version as dpay_version
+from .version import version as dpaygo_version
 from .exceptions import (
     AccountExistsException,
     AccountDoesNotExistsException
@@ -37,7 +38,7 @@ log = logging.getLogger(__name__)
 
 
 class DPay(object):
-    """ Connect to the DPay network.
+    """ Connect to the dPay network.
         :param str node: Node to connect to *(optional)*
         :param str rpcuser: RPC user *(optional)*
         :param str rpcpassword: RPC password *(optional)*
@@ -68,6 +69,7 @@ class DPay(object):
         :param bool use_sc2: When True, a dpayid object is created. Can be used for
             broadcast posting op or creating hot_links (default is False)
         :param DPayId dpayid: A DPayId object can be set manually, set use_sc2 to True
+        :param dict custom_chains: custom chain which should be added to the known chains
         Three wallet operation modes are possible:
         * **Wallet Database**: Here, the dpaylibs load the keys from the
           locally stored wallet SQLite database (see ``storage.py``).
@@ -84,18 +86,30 @@ class DPay(object):
           any account. This mode is only used for *foreign*
           signatures!
         If no node is provided, it will connect to default nodes of
-        http://geo.dpays.io. Default settings can be changed with:
+        http://dpaynodes.com. Default settings can be changed with:
         .. code-block:: python
             dpay = DPay(<host>)
         where ``<host>`` starts with ``https://``, ``ws://`` or ``wss://``.
         The purpose of this class it to simplify interaction with
-        DPay.
+        dPay.
         The idea is to have a class that allows to do this:
         .. code-block:: python
-            >>> from dpay import DPay
+            >>> from dpaygo import DPay
             >>> dpay = DPay()
             >>> print(dpay.get_blockchain_version())  # doctest: +SKIP
         This class also deals with edits, votes and reading content.
+        Example for adding a custom chain:
+        .. code-block:: python
+            from dpaygo import DPay
+            stm = DPay(node=["https://greatchain.dpaynodes.com"], custom_chains={"DPAY":
+                {'chain_assets': [{'asset': 'BBD', 'id': 0, 'precision': 3, 'symbol': 'BBD'},
+                                  {'asset': 'BEX', 'id': 1, 'precision': 3, 'symbol': 'BEX'},
+                                  {'asset': 'VESTS', 'id': 2, 'precision': 6, 'symbol': 'VESTS'}],
+                 'chain_id': '38f14b346eb697ba04ae0f5adcfaa0a437ed3711197704aa256a14cb9b4a8f26',
+                 'min_version': '0.0.0',
+                 'prefix': 'DWB'}
+                }
+            )
     """
 
     def __init__(self,
@@ -148,6 +162,7 @@ class DPay(object):
         self.dpayid = kwargs.get("dpayid", None)
         self.use_sc2 = bool(kwargs.get("use_sc2", False))
         self.blocking = kwargs.get("blocking", False)
+        self.custom_chains = kwargs.get("custom_chains", {})
 
         # Store config for access through other Classes
         self.config = config
@@ -186,12 +201,12 @@ class DPay(object):
                 rpcuser="",
                 rpcpassword="",
                 **kwargs):
-        """ Connect to DPay network (internal use only)
+        """ Connect to dPay network (internal use only)
         """
         if not node:
             node = self.get_default_nodes()
             if not bool(node):
-                raise ValueError("A DPay node needs to be provided!")
+                raise ValueError("A dPay node needs to be provided!")
 
         if not rpcuser and "rpcuser" in config:
             rpcuser = config["rpcuser"]
@@ -367,7 +382,6 @@ class DPay(object):
         try:
             return self.rpc.get_network()
         except:
-            from dpaygographenebase.chains import known_chains
             return known_chains["DPAY"]
 
     def get_median_price(self, use_stored_data=True):
@@ -384,7 +398,7 @@ class DPay(object):
 
     def get_block_interval(self, use_stored_data=True):
         """Returns the block interval in seconds"""
-        props = self.get_config(use_stored_data=use_stored_data, replace_dpayit_by_dpay=True)
+        props = self.get_config(use_stored_data=use_stored_data, replace_dpay_by_dpay=True)
         if props and "DPAY_BLOCK_INTERVAL" in props:
             block_interval = props["DPAY_BLOCK_INTERVAL"]
         else:
@@ -393,25 +407,35 @@ class DPay(object):
 
     def get_blockchain_version(self, use_stored_data=True):
         """Returns the blockchain version"""
-        props = self.get_config(use_stored_data=use_stored_data, replace_dpayit_by_dpay=True)
+        props = self.get_config(use_stored_data=use_stored_data, replace_dpay_by_dpay=True)
         if props and "DPAY_BLOCKCHAIN_VERSION" in props:
             blockchain_version = props["DPAY_BLOCKCHAIN_VERSION"]
         else:
             blockchain_version = '0.0.0'
         return blockchain_version
 
-    def rshares_to_bbd(self, rshares, use_stored_data=True):
+    def get_dust_threshold(self, use_stored_data=True):
+        """Returns the vote dust threshold"""
+        props = self.get_config(use_stored_data=use_stored_data, replace_dpay_by_dpay=True)
+        if props and 'DPAY_VOTE_DUST_THRESHOLD' in props:
+            dust_threshold = props['DPAY_VOTE_DUST_THRESHOLD']
+        else:
+            dust_threshold = 0
+        return dust_threshold
+
+    def rshares_to_bbd(self, rshares, not_broadcasted_vote=False, use_stored_data=True):
         """ Calculates the current BBD value of a vote
         """
-        payout = float(rshares) * self.get_bbd_per_rshares(use_stored_data=use_stored_data)
+        payout = float(rshares) * self.get_bbd_per_rshares(use_stored_data=use_stored_data,
+                                                           not_broadcasted_vote_rshares=rshares if not_broadcasted_vote else 0)
         return payout
 
-    def get_bbd_per_rshares(self, use_stored_data=True):
+    def get_bbd_per_rshares(self, not_broadcasted_vote_rshares=0, use_stored_data=True):
         """ Returns the current rshares to BBD ratio
         """
         reward_fund = self.get_reward_funds(use_stored_data=use_stored_data)
         reward_balance = Amount(reward_fund["reward_balance"], dpay_instance=self).amount
-        recent_claims = float(reward_fund["recent_claims"])
+        recent_claims = float(reward_fund["recent_claims"]) + not_broadcasted_vote_rshares
 
         fund_per_share = reward_balance / (recent_claims)
         median_price = self.get_median_price(use_stored_data=use_stored_data)
@@ -443,9 +467,9 @@ class DPay(object):
             (Amount(global_properties['total_vesting_shares'], dpay_instance=self).amount / 1e6)
         )
 
-    def vests_to_sp(self, vests, timestamp=None, use_stored_data=True):
+    def vests_to_bp(self, vests, timestamp=None, use_stored_data=True):
         """ Converts vests to BP
-            :param dpay.amount.Amount vests/float vests: Vests to convert
+            :param dpaygo.amount.Amount vests/float vests: Vests to convert
             :param int timestamp: (Optional) Can be used to calculate
                 the conversion rate from the past
         """
@@ -453,40 +477,37 @@ class DPay(object):
             vests = vests.amount
         return vests / 1e6 * self.get_dpay_per_mvest(timestamp, use_stored_data=use_stored_data)
 
-    def sp_to_vests(self, bp, timestamp=None, use_stored_data=True):
+    def sp_to_vests(self, sp, timestamp=None, use_stored_data=True):
         """ Converts BP to vests
-            :param float bp: BEX Power to convert
+            :param float bp: BEX power to convert
             :param datetime timestamp: (Optional) Can be used to calculate
                 the conversion rate from the past
         """
-        return bp * 1e6 / self.get_dpay_per_mvest(timestamp, use_stored_data=use_stored_data)
+        return sp * 1e6 / self.get_dpay_per_mvest(timestamp, use_stored_data=use_stored_data)
 
-    def bp_to_bbd(self, bp, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, use_stored_data=True):
+    def sp_to_bbd(self, sp, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, not_broadcasted_vote=True, use_stored_data=True):
         """ Obtain the resulting BBD vote value from BEX Power
-            :param number dpay_power: Bex Power
+            :param number dpay_power: BEX Power
             :param int voting_power: voting power (100% = 10000)
             :param int vote_pct: voting percentage (100% = 10000)
+            :param bool not_broadcasted_vote: not_broadcasted or already broadcasted vote (True = not_broadcasted vote).
+            Only impactful for very big votes. Slight modification to the value calculation, as the not_broadcasted
+            vote rshares decreases the reward pool.
         """
-        vesting_shares = int(self.sp_to_vests(bp, use_stored_data=use_stored_data))
-        return self.vests_to_bbd(vesting_shares, voting_power=voting_power, vote_pct=vote_pct)
+        vesting_shares = int(self.sp_to_vests(sp, use_stored_data=use_stored_data))
+        return self.vests_to_bbd(vesting_shares, voting_power=voting_power, vote_pct=vote_pct, not_broadcasted_vote=not_broadcasted_vote, use_stored_data=use_stored_data)
 
-    def vests_to_bbd(self, vests, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, use_stored_data=True):
+    def vests_to_bbd(self, vests, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, not_broadcasted_vote=True, use_stored_data=True):
         """ Obtain the resulting BBD vote value from vests
             :param number vests: vesting shares
             :param int voting_power: voting power (100% = 10000)
             :param int vote_pct: voting percentage (100% = 10000)
+            :param bool not_broadcasted_vote: not_broadcasted or already broadcasted vote (True = not_broadcasted vote).
+            Only impactful for very big votes. Slight modification to the value calculation, as the not_broadcasted
+            vote rshares decreases the reward pool.
         """
-        reward_fund = self.get_reward_funds(use_stored_data=use_stored_data)
-        reward_balance = Amount(reward_fund["reward_balance"], dpay_instance=self).amount
-        recent_claims = float(reward_fund["recent_claims"])
-        reward_share = reward_balance / recent_claims
-
-        resulting_vote = self._calc_resulting_vote(voting_power=voting_power, vote_pct=vote_pct)
-        median_price = self.get_median_price(use_stored_data=use_stored_data)
-        BBD_price = (median_price * Amount("1 BEX", dpay_instance=self)).amount
-        VoteValue = math.copysign(vests * resulting_vote * 100 *
-                                  reward_share * BBD_price, vote_pct)
-        return VoteValue
+        vote_rshares = self.vests_to_rshares(vests, voting_power=voting_power, vote_pct=vote_pct)
+        return self.rshares_to_bbd(vote_rshares, not_broadcasted_vote=not_broadcasted_vote, use_stored_data=use_stored_data)
 
     def _max_vote_denom(self, use_stored_data=True):
         # get props
@@ -502,14 +523,14 @@ class DPay(object):
         used_power = int((used_power + max_vote_denom - 1) / max_vote_denom)
         return used_power
 
-    def bp_to_rshares(self, dpay_power, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, use_stored_data=True):
+    def sp_to_rshares(self, dpay_power, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, use_stored_data=True):
         """ Obtain the r-shares from BEX Power
-            :param number dpay_power: Bex Power
+            :param number dpay_power: BEX Power
             :param int voting_power: voting power (100% = 10000)
             :param int vote_pct: voting percentage (100% = 10000)
         """
         # calculate our account voting shares (from vests)
-        vesting_shares = int(self.sp_to_vests(dpay_power, use_stored_data=use_stored_data) * 1e6)
+        vesting_shares = int(self.sp_to_vests(dpay_power, use_stored_data=use_stored_data))
         return self.vests_to_rshares(vesting_shares, voting_power=voting_power, vote_pct=vote_pct, use_stored_data=use_stored_data)
 
     def vests_to_rshares(self, vests, voting_power=DPAY_100_PERCENT, vote_pct=DPAY_100_PERCENT, use_stored_data=True):
@@ -520,18 +541,68 @@ class DPay(object):
         """
         used_power = self._calc_resulting_vote(voting_power=voting_power, vote_pct=vote_pct, use_stored_data=use_stored_data)
         # calculate vote rshares
-        rshares = int(math.copysign(vests * used_power / DPAY_100_PERCENT, vote_pct))
+        rshares = int(math.copysign(vests * 1e6 * used_power / DPAY_100_PERCENT, vote_pct))
+        if self.hardfork >= 20:
+            if abs(rshares) <= self.get_dust_threshold(use_stored_data=use_stored_data):
+                return 0
+            rshares -= math.copysign(self.get_dust_threshold(use_stored_data=use_stored_data), vote_pct)
         return rshares
+
+    def bbd_to_rshares(self, bbd, not_broadcasted_vote=False, use_stored_data=True):
+        """ Obtain the r-shares from BBD
+        :param str/int/Amount bbd: BBD
+        :param bool not_broadcasted_vote: not_broadcasted or already broadcasted vote (True = not_broadcasted vote).
+         Only impactful for very high amounts of BBD. Slight modification to the value calculation, as the not_broadcasted
+         vote rshares decreases the reward pool.
+        """
+        if isinstance(bbd, Amount):
+            bbd = Amount(bbd, dpay_instance=self)
+        elif isinstance(bbd, string_types):
+            bbd = Amount(bbd, dpay_instance=self)
+        else:
+            bbd = Amount(bbd, 'BBD', dpay_instance=self)
+        if bbd['symbol'] != 'BBD':
+            raise AssertionError('Should input BBD, not any other asset!')
+        reward_pool_bbd = self.get_median_price(use_stored_data=use_stored_data) * Amount(self.get_reward_funds(use_stored_data=use_stored_data)['reward_balance'])
+        if bbd.amount > reward_pool_bbd.amount:
+            raise ValueError('Provided more BBD than available in the reward pool.')
+
+        # If the vote was already broadcasted we can assume the blockchain values to be true
+        if not not_broadcasted_vote:
+            return bbd.amount / self.get_bbd_per_rshares(use_stored_data=use_stored_data)
+
+        # If the vote wasn't broadcasted (yet), we have to calculate the rshares while considering
+        # the change our vote is causing to the recent_claims. This is more important for really
+        # big votes which have a significant impact on the recent_claims.
+
+        # Get some data from the blockchain
+        reward_fund = self.get_reward_funds(use_stored_data=use_stored_data)
+        reward_balance = Amount(reward_fund["reward_balance"], dpay_instance=self).amount
+        recent_claims = float(reward_fund["recent_claims"])
+        median_price = self.get_median_price(use_stored_data=use_stored_data)
+        BBD_price = (median_price * Amount("1 BEX", dpay_instance=self)).amount
+
+        # This is the formular we can use to determine the "true" rshares
+        # We get this formular by some math magic using the previous used formulas
+        # FundsPerShare = (balance / (claims+newShares))*Price
+        # newShares = Amount / FundsPerShare
+        # We can now resolve both formulas for FundsPerShare and set the formulas to be equal
+        # (balance / (claims+newShares))*Price = Amount / newShares
+        # Now we resolve for newShares resulting in:
+        # newShares = = claims * amount / (balance*price -amount)
+        rshares = recent_claims * bbd.amount / ((reward_balance * BBD_price) - bbd.amount)
+
+        return int(rshares)
 
     def rshares_to_vote_pct(self, rshares, dpay_power=None, vests=None, voting_power=DPAY_100_PERCENT, use_stored_data=True):
         """ Obtain the voting percentage for a desired rshares value
-            for a given Bex Power or vesting shares and voting_power
+            for a given BEX Power or vesting shares and voting_power
             Give either dpay_power or vests, not both.
             When the output is greater than 10000 or less than -10000,
             the given absolute rshares are too high
             Returns the required voting percentage (100% = 10000)
             :param number rshares: desired rshares value
-            :param number dpay_power: Bex Power
+            :param number dpay_power: BEX Power
             :param number vests: vesting shares
             :param int voting_power: voting power (100% = 10000)
         """
@@ -542,6 +613,9 @@ class DPay(object):
         if dpay_power is not None:
             vests = int(self.sp_to_vests(dpay_power, use_stored_data=use_stored_data) * 1e6)
 
+        if self.hardfork >= 20:
+            rshares += math.copysign(self.get_dust_threshold(use_stored_data=use_stored_data), rshares)
+
         max_vote_denom = self._max_vote_denom(use_stored_data=use_stored_data)
 
         used_power = int(math.ceil(abs(rshares) * DPAY_100_PERCENT / vests))
@@ -549,6 +623,31 @@ class DPay(object):
 
         vote_pct = used_power * DPAY_100_PERCENT / (60 * 60 * 24) / voting_power
         return int(math.copysign(vote_pct, rshares))
+
+    def bbd_to_vote_pct(self, bbd, dpay_power=None, vests=None, voting_power=DPAY_100_PERCENT, not_broadcasted_vote=True, use_stored_data=True):
+        """ Obtain the voting percentage for a desired BBD value
+            for a given BEX Power or vesting shares and voting power
+            Give either BEX Power or vests, not both.
+            When the output is greater than 10000 or smaller than -10000,
+            the BBD value is too high.
+            Returns the required voting percentage (100% = 10000)
+            :param str/int/Amount bbd: desired BBD value
+            :param number dpay_power: BEX Power
+            :param number vests: vesting shares
+            :param bool not_broadcasted_vote: not_broadcasted or already broadcasted vote (True = not_broadcasted vote).
+             Only impactful for very high amounts of BBD. Slight modification to the value calculation, as the not_broadcasted
+             vote rshares decreases the reward pool.
+        """
+        if isinstance(bbd, Amount):
+            bbd = Amount(bbd, dpay_instance=self)
+        elif isinstance(bbd, string_types):
+            bbd = Amount(bbd, dpay_instance=self)
+        else:
+            bbd = Amount(bbd, 'BBD', dpay_instance=self)
+        if bbd['symbol'] != 'BBD':
+            raise AssertionError()
+        rshares = self.bbd_to_rshares(bbd, not_broadcasted_vote=not_broadcasted_vote, use_stored_data=use_stored_data)
+        return self.rshares_to_vote_pct(rshares, dpay_power=dpay_power, vests=vests, voting_power=voting_power, use_stored_data=use_stored_data)
 
     def get_chain_properties(self, use_stored_data=True):
         """ Return witness elected chain properties
@@ -577,10 +676,10 @@ class DPay(object):
         self.rpc.set_next_node_on_empty_reply(True)
         return self.rpc.get_witness_schedule(api="database")
 
-    def get_config(self, use_stored_data=True, replace_dpayit_by_dpay=False):
+    def get_config(self, use_stored_data=True, replace_dpay_by_dpay=False):
         """ Returns internal chain configuration.
             :param bool use_stored_data: If True, the chached value is returned
-            :param bool replace_dpayit_by_dpay: If True, it replaces all
+            :param bool replace_dpay_by_dpay: If True, it replaces all
                 DPAY keys by DPAY (only useful on non appbase nodes)
         """
         if use_stored_data:
@@ -591,7 +690,7 @@ class DPay(object):
                 return None
             self.rpc.set_next_node_on_empty_reply(True)
             config = self.rpc.get_config(api="database")
-        if config is not None and replace_dpayit_by_dpay:
+        if config is not None and replace_dpay_by_dpay:
             new_config = {}
             for key in config:
                 new_config[key.replace('DPAY', 'DPAY')] = config[key]
@@ -602,10 +701,17 @@ class DPay(object):
     @property
     def chain_params(self):
         if self.offline or self.rpc is None:
-            from dpaygographenebase.chains import known_chains
             return known_chains["DPAY"]
         else:
             return self.get_network()
+
+    @property
+    def hardfork(self):
+        if self.offline or self.rpc is None:
+            versions = known_chains['DPAY']['min_version']
+        else:
+            versions = self.get_hardfork_properties()["current_hardfork_version"]
+        return int(versions.split('.')[1])
 
     @property
     def prefix(self):
@@ -624,7 +730,7 @@ class DPay(object):
             UNLOCK variable
             When set to "keyring" the password is taken from the
             python keyring module. A wallet password can be stored with
-            python -m keyring set dpay wallet password
+            python -m keyring set dpaygo wallet password
             :param str password_storage: can be "no",
                 "keyring" or "environment"
         """
@@ -692,8 +798,8 @@ class DPay(object):
                         that require active permission with ops that require
                         posting permission. Neither can you use different
                         accounts for different operations!
-            .. note:: This uses ``dpay.txbuffer`` as instance of
-                :class:`dpay.transactionbuilder.TransactionBuilder`.
+            .. note:: This uses ``dpaygo.txbuffer`` as instance of
+                :class:`dpaygo.transactionbuilder.TransactionBuilder`.
                 You may want to use your own txbuffer
         """
         if self.offline:
@@ -748,7 +854,7 @@ class DPay(object):
         return txbuffer.json()
 
     def broadcast(self, tx=None):
-        """ Broadcast a transaction to the DPay network
+        """ Broadcast a transaction to the dPay network
             :param tx tx: Signed transaction to broadcast
         """
         if tx:
@@ -767,9 +873,9 @@ class DPay(object):
     # -------------------------------------------------------------------------
     def newWallet(self, pwd):
         """ Create a new wallet. This method is basically only calls
-            :func:`dpay.wallet.create`.
+            :func:`dpaygo.wallet.create`.
             :param str pwd: Password to use for the new wallet
-            :raises dpay.exceptions.WalletExists: if there is already a
+            :raises dpaygo.exceptions.WalletExists: if there is already a
                 wallet created
         """
         return self.wallet.create(pwd)
@@ -832,7 +938,6 @@ class DPay(object):
         storekeys=True,
         store_owner_key=False,
         json_meta=None,
-        delegation_fee_dpay='0 BEX',
         **kwargs
     ):
         """ Create new account on DPay
@@ -859,15 +964,6 @@ class DPay(object):
             .. note:: Account creations cost a fee that is defined by
                        the network. If you create an account, you will
                        need to pay for that fee!
-                       **You can partially pay that fee by delegating VESTS.**
-                       To pay the fee in full in BEX, leave
-                       ``delegation_fee_dpay`` set to ``0 BEX`` (Default).
-                       To pay the fee partially in BEX, partially with delegated
-                       VESTS, set ``delegation_fee_dpay`` to a value greater than ``1
-                       BEX``. `Required VESTS will be calculated automatically.`
-                       To pay the fee with maximum amount of delegation, set
-                       ``delegation_fee_dpay`` to ``1 BEX``. `Required VESTS will be
-                       calculated automatically.`
             :param str account_name: (**required**) new account name
             :param str json_meta: Optional meta data for the account
             :param str owner_key: Main owner key
@@ -886,10 +982,6 @@ class DPay(object):
                 names
             :param bool storekeys: Store new keys in the wallet (default:
                 ``True``)
-            :param delegation_fee_dpay: If set, `creator` pays a
-                fee of this amount, and delegates the rest with VESTS (calculated
-                automatically). Minimum: 1 BEX. If left to 0 (Default), full fee
-                is paid without VESTS delegation.
             :param str creator: which account should pay the registration fee
                                 (defaults to ``default_account``)
             :raises AccountExistsException: if the account already exists on
@@ -913,14 +1005,6 @@ class DPay(object):
             pass
 
         creator = Account(creator, dpay_instance=self)
-        if isinstance(delegation_fee_dpay, string_types):
-            delegation_fee_dpay = Amount(delegation_fee_dpay, dpay_instance=self)
-        elif isinstance(delegation_fee_dpay, Amount):
-            delegation_fee_dpay = Amount(delegation_fee_dpay, dpay_instance=self)
-        else:
-            delegation_fee_dpay = Amount(delegation_fee_dpay, "BEX", dpay_instance=self)
-        if not delegation_fee_dpay["symbol"] == "BEX":
-            raise AssertionError()
 
         " Generate new keys from password"
         from dpaygographenebase.account import PasswordKey
@@ -992,70 +1076,64 @@ class DPay(object):
             posting_accounts_authority.append([addaccount["name"], 1])
 
         props = self.get_chain_properties()
-        required_fee_dpay = Amount(props["account_creation_fee"], dpay_instance=self) * 30
-        required_fee_vests = Amount(0, "VESTS", dpay_instance=self)
-        if delegation_fee_dpay.amount:
-            # creating accounts without delegation requires 30x
-            # account_creation_fee creating account with delegation allows one
-            # to use VESTS to pay the fee where the ratio must satisfy 1 BEX
-            # in fee == 5 BEX in delegated VESTS
-
-            delegated_sp_fee_mult = 5
-
-            if delegation_fee_dpay.amount < 1:
-                raise ValueError(
-                    "When creating account with delegation, at least " +
-                    "1 BEX in fee must be paid.")
-            # calculate required remaining fee in vests
-            remaining_fee = required_fee_dpay - delegation_fee_dpay
-            if remaining_fee.amount > 0:
-                required_sp = remaining_fee.amount * delegated_sp_fee_mult
-                required_fee_vests = Amount(self.sp_to_vests(required_sp) + 1, "VESTS", dpay_instance=self)
-            op = {
-                "fee": delegation_fee_dpay,
-                'delegation': required_fee_vests,
-                "creator": creator["name"],
-                "new_account_name": account_name,
-                'owner': {'account_auths': owner_accounts_authority,
-                          'key_auths': owner_key_authority,
-                          "address_auths": [],
-                          'weight_threshold': 1},
-                'active': {'account_auths': active_accounts_authority,
-                           'key_auths': active_key_authority,
-                           "address_auths": [],
-                           'weight_threshold': 1},
-                'posting': {'account_auths': active_accounts_authority,
-                            'key_auths': posting_key_authority,
-                            "address_auths": [],
-                            'weight_threshold': 1},
-                'memo_key': memo,
-                "json_metadata": json_meta or {},
-                "prefix": self.prefix,
-            }
-            op = operations.Account_create_with_delegation(**op)
-        else:
-            op = {
-                "fee": required_fee_dpay,
-                "creator": creator["name"],
-                "new_account_name": account_name,
-                'owner': {'account_auths': owner_accounts_authority,
-                          'key_auths': owner_key_authority,
-                          "address_auths": [],
-                          'weight_threshold': 1},
-                'active': {'account_auths': active_accounts_authority,
-                           'key_auths': active_key_authority,
-                           "address_auths": [],
-                           'weight_threshold': 1},
-                'posting': {'account_auths': active_accounts_authority,
-                            'key_auths': posting_key_authority,
-                            "address_auths": [],
-                            'weight_threshold': 1},
-                'memo_key': memo,
-                "json_metadata": json_meta or {},
-                "prefix": self.prefix,
-            }
-            op = operations.Account_create(**op)
+        required_fee_dpay = Amount(props["account_creation_fee"], dpay_instance=self)
+        op = {
+            "fee": required_fee_dpay,
+            "creator": creator["name"],
+            "new_account_name": account_name,
+            'owner': {'account_auths': owner_accounts_authority,
+                      'key_auths': owner_key_authority,
+                      "address_auths": [],
+                      'weight_threshold': 1},
+            'active': {'account_auths': active_accounts_authority,
+                       'key_auths': active_key_authority,
+                       "address_auths": [],
+                       'weight_threshold': 1},
+            'posting': {'account_auths': active_accounts_authority,
+                        'key_auths': posting_key_authority,
+                        "address_auths": [],
+                        'weight_threshold': 1},
+            'memo_key': memo,
+            "json_metadata": json_meta or {},
+            "prefix": self.prefix,
+        }
+        op = operations.Account_create(**op)
         return self.finalizeOp(op, creator, "active", **kwargs)
+
+    def witness_set_properties(self, wif, owner, props, use_condenser_api=True):
+        """ Set witness properties
+            :param privkey wif: Private signing key
+            :param dict props: Properties
+            :param str owner: witness account name
+            Properties:::
+                {
+                    "account_creation_fee": x,
+                    "account_subsidy_budget": x,
+                    "account_subsidy_decay": x,
+                    "maximum_block_size": x,
+                    "url": x,
+                    "bbd_exchange_rate": x,
+                    "bbd_interest_rate": x,
+                    "new_signing_key": x
+                }
+        """
+
+        owner = Account(owner, dpay_instance=self)
+
+        try:
+            PrivateKey(wif, prefix=self.prefix)
+        except Exception as e:
+            raise e
+        props_list = [["key", repr(PrivateKey(wif, prefix=self.prefix).pubkey)]]
+        for k in props:
+            props_list.append([k, props[k]])
+
+        op = operations.Witness_set_properties({"owner": owner["name"], "props": props_list, "prefix": self.prefix})
+        tb = TransactionBuilder(use_condenser_api=use_condenser_api, dpay_instance=self)
+        tb.appendOps([op])
+        tb.appendWif(wif)
+        tb.sign()
+        return tb.broadcast()
 
     def witness_update(self, signing_key, url, props, account=None, **kwargs):
         """ Creates/updates a witness
@@ -1121,6 +1199,12 @@ class DPay(object):
                 operation
             :param list required_auths: (optional) required auths
             :param list required_posting_auths: (optional) posting auths
+            Note: While reqired auths and required_posting_auths are both
+            optional, one of the two are needed in order to send the custom
+            json.
+            .. code-block:: python
+               dpay.custom_json("id", "json_data",
+               required_posting_auths=['account'])
         """
         account = None
         if len(required_auths):
@@ -1191,7 +1275,7 @@ class DPay(object):
             into. This will also override the community specified in
             `json_metadata`.
         :param str app: (Optional) Name of the app which are used for posting
-            when not set, dpay/<version> is used
+            when not set, dpaygo/<version> is used
         :param str/list tags: (Optional) A list of tags to go with the
             post. This will also override the tags specified in
             `json_metadata`. The first tag will be used as a 'category'. If
@@ -1224,7 +1308,7 @@ class DPay(object):
         if app:
             json_metadata.update({'app': app})
         elif 'app' not in json_metadata:
-            json_metadata.update({'app': 'dpay/%s' % (dpay_version)})
+            json_metadata.update({'app': 'dpaygo/%s' % (dpaygo_version)})
 
         if not author and config["default_account"]:
             author = config["default_account"]
