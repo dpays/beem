@@ -30,14 +30,11 @@ class TransactionBuilder(dict):
     """ This class simplifies the creation of transactions by adding
         operations and signers.
         To build your own transactions and sign them
-
         :param dict tx: transaction (Optional). If not set, the new transaction is created.
         :param int expiration: Delay in seconds until transactions are supposed
             to expire *(optional)* (default is 30)
         :param DPay dpay_instance: If not set, shared_dpay_instance() is used
-
         .. testcode::
-
            from dpaygo.transactionbuilder import TransactionBuilder
            from dpaygobase.operations import Transfer
            from dpaygo import DPay
@@ -49,11 +46,11 @@ class TransactionBuilder(dict):
            tx.appendSigner("test", "active") # or tx.appendWif(wif)
            signed_tx = tx.sign()
            broadcast_tx = tx.broadcast()
-
     """
     def __init__(
         self,
         tx={},
+        use_condenser_api=True,
         dpay_instance=None,
         **kwargs
     ):
@@ -66,7 +63,7 @@ class TransactionBuilder(dict):
             self._require_reconstruction = False
         else:
             self._require_reconstruction = True
-        self._use_condenser_api = True
+        self._use_condenser_api = use_condenser_api
         self.set_expiration(kwargs.get("expiration", self.dpay.expiration))
 
     def set_expiration(self, p):
@@ -128,7 +125,6 @@ class TransactionBuilder(dict):
 
     def appendOps(self, ops, append_to=None):
         """ Append op(s) to the transaction builder
-
             :param list ops: One or a list of operations
         """
         if isinstance(ops, list):
@@ -159,7 +155,7 @@ class TransactionBuilder(dict):
         required_treshold = account[permission]["weight_threshold"]
         if self.dpay.wallet.locked():
             raise WalletLocked()
-        if self.dpay.use_dpid:
+        if self.dpay.use_sc2:
             self.dpay.dpayid.set_username(account["name"], permission)
             return
 
@@ -215,7 +211,6 @@ class TransactionBuilder(dict):
 
     def appendWif(self, wif):
         """ Add a wif that should be used for signing of the transaction.
-
             :param string wif: One wif key to use for signing
                 a transaction.
         """
@@ -230,10 +225,9 @@ class TransactionBuilder(dict):
         """Clear all stored wifs"""
         self.wifs = set()
 
-    def constructTx(self):
+    def constructTx(self, ref_block_num=None, ref_block_prefix=None):
         """ Construct the actual transaction and store it in the class's dict
             store
-
         """
         ops = list()
         if self.dpay.is_connected() and self.dpay.rpc.get_use_appbase():
@@ -250,8 +244,9 @@ class TransactionBuilder(dict):
         expiration = formatTimeFromNow(
             self.expiration or self.dpay.expiration
         )
-        ref_block_num, ref_block_prefix = transactions.getBlockParams(
-            self.dpay.rpc)
+        if ref_block_num is None or ref_block_prefix is None:
+            ref_block_num, ref_block_prefix = transactions.getBlockParams(
+                self.dpay.rpc)
         self.tx = Signed_Transaction(
             ref_block_prefix=ref_block_prefix,
             expiration=expiration,
@@ -270,17 +265,15 @@ class TransactionBuilder(dict):
             signer can be defined "appendSigner". The wif keys
             from all signer that are defined by "appendSigner
             will be loaded from the wallet.
-
             :param bool reconstruct_tx: when set to False and tx
                 is already contructed, it will not reconstructed
                 and already added signatures remain
-
         """
         if not self._is_constructed() or (self._is_constructed() and reconstruct_tx):
             self.constructTx()
         if "operations" not in self or not self["operations"]:
             return
-        if self.dpay.use_dpid:
+        if self.dpay.use_sc2:
             return
         # We need to set the default prefix, otherwise pubkeys are
         # presented wrongly!
@@ -368,12 +361,9 @@ class TransactionBuilder(dict):
         """ Broadcast a transaction to the dPay network
             Returns the signed transaction and clears itself
             after broadast
-
             Clears itself when broadcast was not successfully.
-
             :param int max_block_age: paramerter only used
                 for appbase ready nodes
-
         """
         # Cannot broadcast an empty transaction
         if not self._is_signed():
@@ -401,7 +391,7 @@ class TransactionBuilder(dict):
         # Broadcast
         try:
             self.dpay.rpc.set_next_node_on_empty_reply(False)
-            if self.dpay.use_dpid:
+            if self.dpay.use_sc2:
                 ret = self.dpay.dpayid.broadcast(self["operations"])
             elif self.dpay.blocking:
                 ret = self.dpay.rpc.broadcast_transaction_synchronous(
@@ -433,15 +423,11 @@ class TransactionBuilder(dict):
         """ This is a private method that adds side information to a
             unsigned/partial transaction in order to simplify later
             signing (e.g. for multisig or coldstorage)
-
             Not needed when "appendWif" was already or is going to be used
-
             FIXME: Does not work with owner keys!
-
             :param bool reconstruct_tx: when set to False and tx
                 is already contructed, it will not reconstructed
                 and already added signatures remain
-
         """
         if not self._is_constructed() or (self._is_constructed() and reconstruct_tx):
             self.constructTx()
@@ -479,7 +465,6 @@ class TransactionBuilder(dict):
 
     def appendMissingSignatures(self):
         """ Store which accounts/keys are supposed to sign the transaction
-
             This method is used for an offline-signer!
         """
         missing_signatures = self.get("missing_signatures", [])
