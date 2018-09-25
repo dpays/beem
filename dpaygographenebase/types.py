@@ -161,6 +161,21 @@ class Int64(object):
 
 
 @python_2_unicode_compatible
+class HexString(object):
+    def __init__(self, d):
+        self.data = d
+
+    def __bytes__(self):
+        """Returns bytes representation."""
+        d = bytes(unhexlify(bytes(self.data, 'ascii')))
+        return varint(len(d)) + d
+
+    def __str__(self):
+        """Returns data as string."""
+        return '%s' % str(self.data)
+
+
+@python_2_unicode_compatible
 class String(object):
     def __init__(self, d):
         self.data = d
@@ -212,7 +227,7 @@ class Bytes(object):
         """Returns data as bytes."""
         # FIXME constraint data to self.length
         d = unhexlify(bytes(self.data, 'utf-8'))
-        return varint(len(d)) + d
+        return varint(len(self.data)) + d
 
     def __str__(self):
         """Returns data as string."""
