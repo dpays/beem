@@ -176,51 +176,35 @@ class Pool:
 class Blockchain(object):
     """ This class allows to access the blockchain and read data
         from it
-
         :param dpaygo.dpay.DPay dpay_instance: DPay instance
         :param str mode: (default) Irreversible block (``irreversible``) or
             actual head block (``head``)
         :param int max_block_wait_repetition: maximum wait repetition for next block
             where each repetition is block_interval long (default is 3)
-
         This class let's you deal with blockchain related data and methods.
         Read blockchain related data:
-
         .. testsetup::
-
             from dpaygo.blockchain import Blockchain
             chain = Blockchain()
-
         Read current block and blockchain info
-
         .. testcode::
-
             print(chain.get_current_block())
             print(chain.dpay.info())
-
         Monitor for new blocks. When ``stop`` is not set, monitoring will never stop.
-
         .. testcode::
-
             blocks = []
             current_num = chain.get_current_block_num()
             for block in chain.blocks(start=current_num - 99, stop=current_num):
                 blocks.append(block)
             len(blocks)
-
         .. testoutput::
-
             100
-
         or each operation individually:
-
         .. testcode::
-
             ops = []
             current_num = chain.get_current_block_num()
             for operation in chain.ops(start=current_num - 99, stop=current_num):
                 ops.append(operation)
-
     """
     def __init__(
         self,
@@ -248,7 +232,6 @@ class Blockchain(object):
 
     def get_transaction(self, transaction_id):
         """ Returns a transaction from the blockchain
-
             :param str transaction_id: transaction_id
         """
         if not self.dpay.is_connected():
@@ -262,7 +245,6 @@ class Blockchain(object):
 
     def get_transaction_hex(self, transaction):
         """ Returns a hexdump of the serialized binary form of a transaction.
-
             :param dict transaction: transaction
         """
         if not self.dpay.is_connected():
@@ -276,7 +258,6 @@ class Blockchain(object):
 
     def get_current_block_num(self):
         """ This call returns the current block number
-
             .. note:: The block number returned depends on the ``mode`` used
                       when instantiating from this class.
         """
@@ -289,10 +270,8 @@ class Blockchain(object):
 
     def get_current_block(self, only_ops=False, only_virtual_ops=False):
         """ This call returns the current block
-
             :param bool only_ops: Returns block with operations only, when set to True (default: False)
             :param bool only_virtual_ops: Includes only virtual operations (default: False)
-
             .. note:: The block number returned depends on the ``mode`` used
                       when instantiating from this class.
         """
@@ -305,9 +284,7 @@ class Blockchain(object):
 
     def get_estimated_block_num(self, date, estimateForwards=False, accurate=True):
         """ This call estimates the block number based on a given date
-
             :param datetime date: block time for which a block number is estimated
-
             .. note:: The block number returned depends on the ``mode`` used
                       when instantiating from this class.
         """
@@ -347,7 +324,6 @@ class Blockchain(object):
     def block_time(self, block_num):
         """ Returns a datetime of the block with the given block
             number.
-
             :param int block_num: Block number
         """
         return Block(
@@ -358,7 +334,6 @@ class Blockchain(object):
     def block_timestamp(self, block_num):
         """ Returns the timestamp of the block with the given block
             number as integer.
-
             :param int block_num: Block number
         """
         block_time = Block(
@@ -369,7 +344,6 @@ class Blockchain(object):
 
     def blocks(self, start=None, stop=None, max_batch_size=None, threading=False, thread_num=8, only_ops=False, only_virtual_ops=False):
         """ Yields blocks starting from ``start``.
-
             :param int start: Starting block
             :param int stop: Stop at this block
             :param int max_batch_size: only for appbase nodes. When not None, batch calls of are used.
@@ -379,12 +353,10 @@ class Blockchain(object):
             :param bool only_ops: Only yield operations (default: False).
                 Cannot be combined with ``only_virtual_ops=True``.
             :param bool only_virtual_ops: Only yield virtual operations (default: False)
-
             .. note:: If you want instant confirmation, you need to instantiate
                       class:`dpaygo.blockchain.Blockchain` with
                       ``mode="head"``, otherwise, the call will wait until
                       confirmed in an irreversible block.
-
         """
         # Let's find out how often blocks are generated!
         current_block = self.get_current_block()
@@ -550,7 +522,6 @@ class Blockchain(object):
             head_block_reached = True
 
             if stop and start > stop:
-                # raise StopIteration
                 return
 
             # Sleep for one block
@@ -559,7 +530,6 @@ class Blockchain(object):
     def wait_for_and_get_block(self, block_number, blocks_waiting_for=None, only_ops=False, only_virtual_ops=False, block_number_check_cnt=-1, last_current_block_num=None):
         """ Get the desired block from the chain, if the current head block is smaller (for both head and irreversible)
             then we wait, but a maxmimum of blocks_waiting_for * max_block_wait_repetition time before failure.
-
             :param int block_number: desired block number
             :param int blocks_waiting_for: difference between block_number and current head and defines
                 how many blocks we are willing to wait, positive int (default: None)
@@ -567,7 +537,6 @@ class Blockchain(object):
             :param bool only_virtual_ops: Includes only virtual operations (default: False)
             :param int block_number_check_cnt: limit the number of retries when greater than -1
             :param int last_current_block_num: can be used to reduce the number of get_current_block_num() api calls
-
         """
         if last_current_block_num is None:
             last_current_block_num = self.get_current_block_num()
@@ -612,14 +581,11 @@ class Blockchain(object):
     def ops_statistics(self, start, stop=None, add_to_ops_stat=None, with_virtual_ops=True, verbose=False):
         """ Generates statistics for all operations (including virtual operations) starting from
             ``start``.
-
             :param int start: Starting block
             :param int stop: Stop at this block, if set to None, the current_block_num is taken
             :param dict add_to_ops_stat: if set, the result is added to add_to_ops_stat
             :param bool verbose: if True, the current block number and timestamp is printed
-
             This call returns a dict with all possible operations and their occurrence.
-
         """
         if add_to_ops_stat is None:
             import dpaygobase.operationids
@@ -646,7 +612,6 @@ class Blockchain(object):
 
     def stream(self, opNames=[], raw_ops=False, *args, **kwargs):
         """ Yield specific operations (e.g. comments) only
-
             :param array opNames: List of operations to filter for
             :param bool raw_ops: When set to True, it returns the unmodified operations (default: False)
             :param int start: Start at this block
@@ -658,36 +623,28 @@ class Blockchain(object):
             :param bool only_ops: Only yield operations (default: False)
                 Cannot be combined with ``only_virtual_ops=True``
             :param bool only_virtual_ops: Only yield virtual operations (default: False)
-
             The dict output is formated such that ``type`` carries the
             operation type. Timestamp and block_num are taken from the
             block the operation was stored in and the other keys depend
             on the actual operation.
-
             .. note:: If you want instant confirmation, you need to instantiate
                       class:`dpaygo.blockchain.Blockchain` with
                       ``mode="head"``, otherwise, the call will wait until
                       confirmed in an irreversible block.
-
             output when `raw_ops=False` is set:
-
             .. code-block:: js
-
                 {
                     'type': 'transfer',
-                    'from': 'johngreenfield',
-                    'to': 'thundercurator',
+                    'from': 'jared',
+                    'to': 'nomoreheroes',
                     'amount': '0.080 BBD',
-                    'memo': 'https://dsite.io/dpay/@jared/introducing-dpay',
+                    'memo': 'https://dsite.io/dpay/@jared/introducing-dpay-go',
                     '_id': '6d4c5f2d4d8ef1918acaee4a8dce34f9da384786',
                     'timestamp': datetime.datetime(2018, 5, 9, 11, 23, 6, tzinfo=<UTC>),
                     'block_num': 22277588, 'trx_num': 35, 'trx_id': 'cf11b2ac8493c71063ec121b2e8517ab1e0e6bea'
                 }
-
             output when `raw_ops=True` is set:
-
             .. code-block:: js
-
                 {
                     'block_num': 22277588,
                     'op':
@@ -696,12 +653,11 @@ class Blockchain(object):
                                 {
                                     'from': 'johngreenfield', 'to': 'thundercurator',
                                     'amount': '0.080 BBD',
-                                    'memo': 'https://dsite.io/dsite/@jared/introducing-dsite'
+                                    'memo': 'https://dsite.io/dpay/@jared/introducing-dpay-go'
                                 }
                         ],
                         'timestamp': datetime.datetime(2018, 5, 9, 11, 23, 6, tzinfo=<UTC>)
                 }
-
         """
         for block in self.blocks(**kwargs):
             if "transactions" in block:
@@ -731,6 +687,15 @@ class Blockchain(object):
                         block_num = block.get("id")
                         _id = self.hash_op(event)
                         timestamp = block.get("timestamp")
+                    elif "op" in event and isinstance(event["op"], dict) and "type" in event["op"] and "value" in event["op"]:
+                        op_type = event["op"]["type"]
+                        if len(op_type) > 10 and op_type[len(op_type) - 10:] == "_operation":
+                            op_type = op_type[:-10]
+                        op = event["op"]["value"]
+                        trx_id = event.get("trx_id")
+                        block_num = event.get("block")
+                        _id = self.hash_op(event["op"])
+                        timestamp = event.get("timestamp")
                     else:
                         op_type, op = event["op"]
                         trx_id = event.get("trx_id")
@@ -758,12 +723,10 @@ class Blockchain(object):
             included into a block
             :param dict transaction: transaction to wait for
             :param int limit: (optional) number of blocks to wait for the transaction (default: 10)
-
             .. note:: If you want instant confirmation, you need to instantiate
                       class:`dpaygo.blockchain.Blockchain` with
                       ``mode="head"``, otherwise, the call will wait until
                       confirmed in an irreversible block.
-
             .. note:: This method returns once the blockchain has included a
                       transaction with the **same signature**. Even though the
                       signature is not usually used to identify a transaction,
@@ -797,7 +760,6 @@ class Blockchain(object):
 
     def get_all_accounts(self, start='', stop='', steps=1e3, limit=-1, **kwargs):
         """ Yields account names between start and stop.
-
             :param str start: Start at this account name
             :param str stop: Stop at this account name
             :param int steps: Obtain ``steps`` ret with a single call from RPC
@@ -824,12 +786,12 @@ class Blockchain(object):
                     yield account_name
                     cnt += 1
                     if account_name == stop or (limit > 0 and cnt > limit):
-                        raise StopIteration
+                        return
             if lastname == account_name:
-                raise StopIteration
+                return
             lastname = account_name
             if len(ret) < steps:
-                raise StopIteration
+                return
 
     def get_account_count(self):
         """ Returns the number of accounts"""
@@ -842,7 +804,6 @@ class Blockchain(object):
 
     def get_account_reputations(self, start='', stop='', steps=1e3, limit=-1, **kwargs):
         """ Yields account reputation between start and stop.
-
             :param str start: Start at this account name
             :param str stop: Stop at this account name
             :param int steps: Obtain ``steps`` ret with a single call from RPC
@@ -869,29 +830,25 @@ class Blockchain(object):
                     yield account
                     cnt += 1
                     if account_name == stop or (limit > 0 and cnt > limit):
-                        raise StopIteration
+                        return
             if lastname == account_name:
-                raise StopIteration
+                return
             lastname = account_name
             if len(ret) < steps:
-                raise StopIteration
+                return
 
     def get_similar_account_names(self, name, limit=5):
         """ Returns limit similar accounts with name as list
-
         :param str name: account name to search similars for
         :param int limit: limits the number of accounts, which will be returned
         :returns: Similar account names as list
         :rtype: list
-
         .. code-block:: python
-
             >>> from dpaygo.blockchain import Blockchain
             >>> blockchain = Blockchain()
             >>> ret = blockchain.get_similar_account_names("test", limit=5)
-            >>> ret == ['test', 'test-1', 'test-2', 'test-ico', 'test-ilionx-123']
+            >>> len(ret) == 5
             True
-
         """
         if not self.dpay.is_connected():
             return None
